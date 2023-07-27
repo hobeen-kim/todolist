@@ -57,9 +57,7 @@ public class DayPlanController {
 
         Long memberId = SecurityUtil.getCurrentId();
 
-        DayPlanCreateServiceDto serviceDto = DayPlanCreateApiDto.toServiceDto(dto);
-
-        dayPlanService.saveDayPlan(memberId, serviceDto);
+        dayPlanService.saveDayPlan(memberId, dto.toServiceDto());
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -75,13 +73,16 @@ public class DayPlanController {
 
         Long memberId = SecurityUtil.getCurrentId();
 
-        DayPlanUpdateServiceDto serviceDto = DayPlanUpdateApiDto.toServiceDto(dto);
-
-        dayPlanService.updateDayPlan(memberId, dayPlanId, serviceDto);
+        dayPlanService.updateDayPlan(memberId, dayPlanId, dto.toServiceDto());
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    /**
+     * DayPlan 을 삭제합니다.
+     * @param dayPlanId 삭제할 DayPlan 의 id
+     * @return 204 응답만 반환합니다.
+     */
     @DeleteMapping("/{dayPlanId}")
     public ResponseEntity<Void> deleteDayPlan(@PathVariable Long dayPlanId){
 

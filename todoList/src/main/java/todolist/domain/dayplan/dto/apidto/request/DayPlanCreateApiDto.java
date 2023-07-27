@@ -27,14 +27,14 @@ public class DayPlanCreateApiDto {
     private LocalTime endTime;
     private Long todoId;
 
-    public static DayPlanCreateServiceDto toServiceDto(DayPlanCreateApiDto dto) {
+    public DayPlanCreateServiceDto toServiceDto() {
 
         return DayPlanCreateServiceDto.builder()
-                .content(dto.getContent())
-                .date(dto.getDate())
-                .startTime(dto.getStartTime())
-                .endTime(dto.getEndTime())
-                .todoId(dto.getTodoId())
+                .content(this.content)
+                .date(this.date)
+                .startTime(this.startTime)
+                .endTime(this.endTime)
+                .todoId(this.todoId)
                 .build();
 
     }

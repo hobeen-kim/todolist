@@ -26,16 +26,16 @@ public class DayPlanUpdateApiDto {
     //todo 와 연관관계를 끊으려면 false 를 주면 된다.
     private Boolean deleteTodo;
 
-    public static DayPlanUpdateServiceDto toServiceDto(DayPlanUpdateApiDto dto) {
+    public DayPlanUpdateServiceDto toServiceDto() {
 
         return DayPlanUpdateServiceDto.builder()
-                .content(dto.getContent())
-                .date(dto.getDate())
-                .startTime(dto.getStartTime())
-                .endTime(dto.getEndTime())
-                .isDone(dto.getIsDone())
-                .deleteTodo(dto.getDeleteTodo())
-                .todoId(dto.getTodoId())
+                .content(this.content)
+                .date(this.date)
+                .startTime(this.startTime)
+                .endTime(this.endTime)
+                .isDone(this.isDone)
+                .todoId(this.todoId)
+                .deleteTodo(this.deleteTodo)
                 .build();
 
     }
