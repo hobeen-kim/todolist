@@ -59,7 +59,7 @@ public class DayPlanController {
 
         DayPlanCreateServiceDto serviceDto = DayPlanCreateApiDto.toServiceDto(dto);
 
-        DayPlanResponseServiceDto responseServiceDto = dayPlanService.saveDayPlan(memberId, serviceDto);
+        dayPlanService.saveDayPlan(memberId, serviceDto);
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
