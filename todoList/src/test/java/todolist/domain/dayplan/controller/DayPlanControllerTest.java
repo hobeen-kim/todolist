@@ -1,5 +1,7 @@
 package todolist.domain.dayplan.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JavaType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -20,6 +22,7 @@ import todolist.domain.member.entity.Member;
 import todolist.global.ControllerTest;
 import todolist.global.reponse.ApiResponse;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -35,10 +38,8 @@ import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.payload.JsonFieldType.*;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -48,12 +49,7 @@ class DayPlanControllerTest extends ControllerTest {
 
     @Override
     public String getUrl() {
-        return "/api/v1/dayplans";
-    }
-
-    @Override
-    public String getAuthorizationToken() {
-        return "Bearer ABC.ABC.ABC";
+        return "v1/api/dayplans";
     }
 
     @Test
@@ -93,12 +89,12 @@ class DayPlanControllerTest extends ControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(content));
 
+        ApiResponse response = getApiResponseFromResult(actions, DayPlanListResponseApiDto.class);
+
         //restdocs
         actions
                 .andDo(documentHandler.document(
-                        requestHeaders(
-                                headerWithName(AUTHORIZATION).description("Access Token").attributes(getFormat(getAuthorizationToken()))
-                        ),
+                        getTokenRequestHeader(),
                         queryParameters(
                                 parameterWithName("from").description("검색 시작 날짜"),
                                 parameterWithName("to").description("검색 종료 날짜")
@@ -128,6 +124,7 @@ class DayPlanControllerTest extends ControllerTest {
                 .date(LocalDate.of(2023, 7, 20))
                 .startTime(LocalTime.of(12, 0, 0))
                 .endTime(LocalTime.of(12, 20, 0))
+                .todoId(1L)
                 .build();
 
         String content = objectMapper.writeValueAsString(dto);
@@ -148,6 +145,20 @@ class DayPlanControllerTest extends ControllerTest {
         actions
                 .andDo(print())
                 .andExpect(status().isCreated());
+
+        //restdocs
+        actions
+                .andDo(documentHandler.document(
+                        getTokenRequestHeader(),
+                        requestFields(
+                                fieldWithPath("content").type(STRING).description("일정 내용"),
+                                fieldWithPath("date").type(STRING).description("일정 날짜"),
+                                fieldWithPath("startTime").type(STRING).description("일정 시작 시간"),
+                                fieldWithPath("endTime").type(STRING).description("일정 종료 시간"),
+                                fieldWithPath("todoId").type(NUMBER).description("일정에 연결된 todo id").optional()
+                        )
+                ));
+
     }
 
     @Test
@@ -181,6 +192,24 @@ class DayPlanControllerTest extends ControllerTest {
         actions
                 .andDo(print())
                 .andExpect(status().isNoContent());
+
+        //restdocs
+        actions
+                .andDo(documentHandler.document(
+                        getTokenRequestHeader(),
+                        pathParameters(
+                                parameterWithName("dayPlanId").description("수정할 dayPlan id")
+                        ),
+                        requestFields(
+                                fieldWithPath("content").type(STRING).description("일정 내용").optional(),
+                                fieldWithPath("date").type(STRING).description("일정 날짜").optional(),
+                                fieldWithPath("startTime").type(STRING).description("일정 시작 시간").optional(),
+                                fieldWithPath("endTime").type(STRING).description("일정 종료 시간").optional(),
+                                fieldWithPath("isDone").type(BOOLEAN).description("일정 종료 시간").optional(),
+                                fieldWithPath("todoId").type(NUMBER).description("일정에 연결할 todo id").optional(),
+                                fieldWithPath("deleteTodo").type(BOOLEAN).description("false 를 주면 todo 와 연결이 끊김").optional()
+                        )
+                ));
     }
 
     @Test
@@ -202,6 +231,24 @@ class DayPlanControllerTest extends ControllerTest {
         actions
                 .andDo(print())
                 .andExpect(status().isNoContent());
+
+        //restdocs
+        actions
+                .andDo(documentHandler.document(
+                        getTokenRequestHeader(),
+                        pathParameters(
+                                parameterWithName("dayPlanId").description("수정할 dayPlan id")
+                        ),
+                        requestFields(
+                                fieldWithPath("content").type(STRING).description("일정 내용").optional(),
+                                fieldWithPath("date").type(STRING).description("일정 날짜").optional(),
+                                fieldWithPath("startTime").type(STRING).description("일정 시작 시간").optional(),
+                                fieldWithPath("endTime").type(STRING).description("일정 종료 시간").optional(),
+                                fieldWithPath("isDone").type(BOOLEAN).description("일정 종료 시간").optional(),
+                                fieldWithPath("todoId").type(NUMBER).description("일정에 연결할 todo id").optional(),
+                                fieldWithPath("deleteTodo").type(BOOLEAN).description("false 를 주면 todo 와 연결이 끊김").optional()
+                        )
+                ));
 
     }
 
@@ -235,8 +282,7 @@ class DayPlanControllerTest extends ControllerTest {
                             .header(AUTHORIZATION, getAuthorizationToken()));
 
                     //응답값
-                    String contentAsString = actions.andReturn().getResponse().getContentAsString();
-                    ApiResponse apiResponse = objectMapper.readValue(contentAsString, ApiResponse.class);
+                    ApiResponse<Void> apiResponse = getApiResponseFromResult(actions, Void.class);
 
                     //then
                     actions
@@ -262,8 +308,7 @@ class DayPlanControllerTest extends ControllerTest {
                             .header(AUTHORIZATION, getAuthorizationToken()));
 
                     //응답값
-                    String contentAsString = actions.andReturn().getResponse().getContentAsString();
-                    ApiResponse apiResponse = objectMapper.readValue(contentAsString, ApiResponse.class);
+                    ApiResponse<Void> apiResponse = getApiResponseFromResult(actions, Void.class);
 
                     //then
                     actions
@@ -290,8 +335,7 @@ class DayPlanControllerTest extends ControllerTest {
                             .header(AUTHORIZATION, getAuthorizationToken()));
 
                     //응답값
-                    String contentAsString = actions.andReturn().getResponse().getContentAsString();
-                    ApiResponse apiResponse = objectMapper.readValue(contentAsString, ApiResponse.class);
+                    ApiResponse<Void> apiResponse = getApiResponseFromResult(actions, Void.class);
 
                     //then
                     actions
@@ -318,8 +362,7 @@ class DayPlanControllerTest extends ControllerTest {
                             .header(AUTHORIZATION, getAuthorizationToken()));
 
                     //응답값
-                    String contentAsString = actions.andReturn().getResponse().getContentAsString();
-                    ApiResponse apiResponse = objectMapper.readValue(contentAsString, ApiResponse.class);
+                    ApiResponse<DayPlanListResponseApiDto> apiResponse = getApiResponseFromResult(actions, DayPlanListResponseApiDto.class);
 
                     //then
                     actions
@@ -332,6 +375,15 @@ class DayPlanControllerTest extends ControllerTest {
         );
 
     }
+
+    protected <T> ApiResponse<T> getApiResponseFromResult(ResultActions actions, Class<T> clazz) throws UnsupportedEncodingException, JsonProcessingException {
+        String contentAsString = actions.andReturn().getResponse().getContentAsString();
+
+        JavaType javaType = objectMapper.getTypeFactory().constructParametricType(ApiResponse.class, clazz);
+
+        return objectMapper.readValue(contentAsString, javaType);
+    }
+
 
     List<DayPlan> createDayPlans(LocalDate startDate, int count){
         List<DayPlan> dayPlans = new ArrayList<>();

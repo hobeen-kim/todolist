@@ -67,7 +67,9 @@ public interface ControllerTestHelper {
 
     String getUrl();
 
-    String getAuthorizationToken();
+    default String getAuthorizationToken(){
+        return "Bearer ABC.ABC.ABC";
+    }
 
     default String withDefaultUrl(){
         return "";

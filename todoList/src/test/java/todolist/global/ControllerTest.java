@@ -10,6 +10,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
+import org.springframework.restdocs.headers.HeaderDescriptor;
+import org.springframework.restdocs.headers.RequestHeadersSnippet;
 import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.JsonFieldType;
@@ -35,6 +37,8 @@ import org.springframework.restdocs.snippet.Attributes;
 
 import java.util.Collections;
 
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -42,6 +46,7 @@ import static org.springframework.restdocs.payload.JsonFieldType.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static todolist.auth.utils.AuthConstant.AUTHORIZATION;
 
 @ExtendWith({RestDocumentationExtension.class})
 @WebMvcTest({DayPlanController.class})
@@ -86,6 +91,22 @@ public abstract class ControllerTest implements ControllerTestHelper{
     protected Attributes.Attribute getFormat(
             final String value){
         return new Attributes.Attribute("format",value);
+    }
+
+    protected RequestHeadersSnippet getTokenRequestHeader() {
+
+        return requestHeaders(
+                headerWithName(AUTHORIZATION).description("Access Token").attributes(getFormat(getAuthorizationToken()))
+        );
+    }
+
+    protected RequestHeadersSnippet getTokenRequestHeader(HeaderDescriptor... descriptors) {
+
+        RequestHeadersSnippet requestHeadersSnippet = requestHeaders(
+                headerWithName(AUTHORIZATION).description("Access Token").attributes(getFormat(getAuthorizationToken()))
+        );
+
+        return requestHeadersSnippet.and(descriptors);
     }
 
     protected ResponseFieldsSnippet getSingleResponseFields(FieldDescriptor... descriptors) {

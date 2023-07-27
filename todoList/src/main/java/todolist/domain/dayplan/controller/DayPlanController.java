@@ -24,11 +24,11 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/dayplans")
+@RequestMapping("v1/api/dayplans")
 public class DayPlanController {
 
     private final DayPlanService dayPlanService;
-    private static final String BASE_URL = "/api/v1/dayplans";
+    private static final String BASE_URL = "v1/api/dayplans";
 
     /**
      * 특정 기간의 일정 목록을 조회합니다.
