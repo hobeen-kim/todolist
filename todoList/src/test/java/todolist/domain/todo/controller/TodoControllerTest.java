@@ -9,9 +9,11 @@ import todolist.auth.utils.AuthConstant;
 import todolist.domain.dayplan.dto.apidto.request.DayPlanCreateApiDto;
 import todolist.domain.dayplan.dto.servicedto.DayPlanResponseServiceDto;
 import todolist.domain.todo.dto.apidto.request.TodoCreateApiDto;
+import todolist.domain.todo.dto.apidto.request.TodoUpdateApiDto;
 import todolist.domain.todo.dto.apidto.response.TodoListResponseApiDto;
 import todolist.domain.todo.dto.servicedto.TodoCreateServiceDto;
 import todolist.domain.todo.dto.servicedto.TodoResponseServiceDto;
+import todolist.domain.todo.dto.servicedto.TodoUpdateServiceDto;
 import todolist.domain.todo.entity.Importance;
 import todolist.domain.todo.repository.searchCond.SearchType;
 import todolist.global.ControllerTest;
@@ -25,12 +27,12 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.restdocs.payload.JsonFieldType.*;
 import static org.springframework.restdocs.payload.JsonFieldType.NUMBER;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -151,11 +153,86 @@ class TodoControllerTest extends ControllerTest {
 
     @Test
     @DisplayName("todo 수정 api")
-    void updateTodo() {
+    void updateTodo() throws Exception{
+
+        //given
+        //수정 api request dto
+        TodoUpdateApiDto dto = TodoUpdateApiDto.builder()
+                .content("content")
+                .importance(Importance.BLUE)
+                .startDate(LocalDate.of(2023, 3, 1))
+                .deadLine(LocalDate.of(2023, 3, 10))
+                .doneDate(LocalDate.of(2023, 3, 5))
+                .build();
+
+        String content = objectMapper.writeValueAsString(dto);
+
+        //인증값 설정
+        long memberId = 1L;
+        setDefaultAuthentication(memberId);
+
+        //mock 데이터 생성
+        willDoNothing().given(todoService).updateTodo(anyLong(), any(TodoUpdateServiceDto.class));
+
+        //when
+        ResultActions actions = mockMvc.perform(patchBuilder("/{todoId}", content, 1L)
+                .header(AuthConstant.AUTHORIZATION, getAuthorizationToken()));
+
+        //then
+        actions
+                .andDo(print())
+                .andExpect(status().isNoContent())
+        ;
+
+        //restDocs
+        actions
+                .andDo(documentHandler.document(
+                        getTokenRequestHeader(),
+                        pathParameters(
+                                parameterWithName("todoId").description("수정할 todo id")
+                        ),
+                        requestFields(
+                                fieldWithPath("content").type(STRING).description("todo 내용"),
+                                fieldWithPath("importance").type(STRING).description("todo 중요도"),
+                                fieldWithPath("startDate").type(STRING).description("todo 시작 예정일"),
+                                fieldWithPath("deadLine").type(STRING).description("todo 마감 예정일"),
+                                fieldWithPath("doneDate").type(STRING).description("todo 완료일")
+                        )
+                ));
+
+
     }
 
     @Test
-    void deleteTodo() {
+    @DisplayName("todo 삭제 api")
+    void deleteTodo() throws Exception {
+
+        //인증값 설정
+        long memberId = 1L;
+        setDefaultAuthentication(memberId);
+
+        //mock 데이터 생성
+        willDoNothing().given(todoService).deleteTodo(anyLong(), anyLong());
+
+        //when
+        ResultActions actions = mockMvc.perform(deleteBuilder("/{todoId}", 1L)
+                .header(AuthConstant.AUTHORIZATION, getAuthorizationToken()));
+
+        //then
+        actions
+                .andDo(print())
+                .andExpect(status().isNoContent())
+        ;
+
+        //restDocs
+        actions
+                .andDo(documentHandler.document(
+                        getTokenRequestHeader(),
+                        pathParameters(
+                                parameterWithName("todoId").description("삭제할 todo id")
+                        )
+                ));
+
     }
 
     List<TodoResponseServiceDto> createTodoResponseServiceDtos(LocalDate startDate, int count){

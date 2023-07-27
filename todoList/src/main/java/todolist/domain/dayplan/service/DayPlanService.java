@@ -65,6 +65,7 @@ public class DayPlanService {
     }
 
     @Transactional
+    //Todo : dayPlanId 도 dto 로 받는걸로 통일하자
     public void updateDayPlan(Long memberId, Long dayPlanId, DayPlanUpdateServiceDto dto) {
         DayPlan dayPlan = verifiedDayPlan(memberId, dayPlanId);
 

@@ -1,5 +1,6 @@
 package todolist.domain.todo.controller;
 
+import com.google.protobuf.Api;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -7,9 +8,11 @@ import org.springframework.web.bind.annotation.*;
 import todolist.auth.utils.SecurityUtil;
 import todolist.domain.dayplan.dto.apidto.response.DayPlanListResponseApiDto;
 import todolist.domain.todo.dto.apidto.request.TodoCreateApiDto;
+import todolist.domain.todo.dto.apidto.request.TodoUpdateApiDto;
 import todolist.domain.todo.dto.apidto.response.TodoListResponseApiDto;
 import todolist.domain.todo.dto.servicedto.TodoCreateServiceDto;
 import todolist.domain.todo.dto.servicedto.TodoResponseServiceDto;
+import todolist.domain.todo.dto.servicedto.TodoUpdateServiceDto;
 import todolist.domain.todo.repository.searchCond.SearchType;
 import todolist.domain.todo.service.TodoService;
 import todolist.global.reponse.ApiResponse;
@@ -43,26 +46,39 @@ public class TodoController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * todo 를 생성합니다.
+     * @param dto 생성에 필요한 정보
+     * @return 201 응답만 반환합니다.
+     */
     @PostMapping
-    public ResponseEntity<ApiResponse<Void>> createTodo(@RequestBody TodoCreateApiDto dto){
+    public ResponseEntity<Void> createTodo(@RequestBody TodoCreateApiDto dto){
 
         Long memberId = SecurityUtil.getCurrentId();
 
-        TodoCreateServiceDto serviceDto = TodoCreateApiDto.toServiceDto(dto);
-
-        todoService.saveTodo(memberId, serviceDto);
+        todoService.saveTodo(memberId, dto.toServiceDto());
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PatchMapping("/{todoId}")
-    public ResponseEntity updateTodo(){
-        return null;
+    public ResponseEntity<Void> updateTodo(@RequestBody TodoUpdateApiDto dto, @PathVariable Long todoId){
+
+        Long memberId = SecurityUtil.getCurrentId();
+
+        todoService.updateTodo(memberId, dto.toServiceDto(todoId));
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping("/{todoId}")
-    public ResponseEntity deleteTodo(){
-        return null;
+    public ResponseEntity<Api> deleteTodo(@PathVariable Long todoId){
+
+        Long memberId = SecurityUtil.getCurrentId();
+
+        todoService.deleteTodo(memberId, todoId);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 
