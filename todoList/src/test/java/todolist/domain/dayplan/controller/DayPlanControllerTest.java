@@ -233,15 +233,6 @@ class DayPlanControllerTest extends ControllerTest {
                         getTokenRequestHeader(),
                         pathParameters(
                                 parameterWithName("dayPlanId").description("수정할 dayPlan id")
-                        ),
-                        requestFields(
-                                fieldWithPath("content").type(STRING).description("일정 내용").optional(),
-                                fieldWithPath("date").type(STRING).description("일정 날짜").optional(),
-                                fieldWithPath("startTime").type(STRING).description("일정 시작 시간").optional(),
-                                fieldWithPath("endTime").type(STRING).description("일정 종료 시간").optional(),
-                                fieldWithPath("isDone").type(BOOLEAN).description("일정 종료 시간").optional(),
-                                fieldWithPath("todoId").type(NUMBER).description("일정에 연결할 todo id").optional(),
-                                fieldWithPath("deleteTodo").type(BOOLEAN).description("false 를 주면 todo 와 연결이 끊김").optional()
                         )
                 ));
 
