@@ -1,17 +1,34 @@
 package todolist.domain.todo.controller;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import todolist.auth.utils.AuthConstant;
+import todolist.domain.dayplan.dto.apidto.request.DayPlanCreateApiDto;
+import todolist.domain.dayplan.dto.servicedto.DayPlanResponseServiceDto;
+import todolist.domain.todo.dto.apidto.request.TodoCreateApiDto;
+import todolist.domain.todo.dto.apidto.response.TodoListResponseApiDto;
+import todolist.domain.todo.dto.servicedto.TodoCreateServiceDto;
+import todolist.domain.todo.dto.servicedto.TodoResponseServiceDto;
+import todolist.domain.todo.entity.Importance;
+import todolist.domain.todo.repository.searchCond.SearchType;
 import todolist.global.ControllerTest;
+import todolist.global.reponse.ApiResponse;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.payload.JsonFieldType.*;
 import static org.springframework.restdocs.payload.JsonFieldType.NUMBER;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -22,19 +39,37 @@ class TodoControllerTest extends ControllerTest {
 
     @Override
     public String getUrl() {
-        return "v1/api/todo";
+        return "/v1/api/todos";
     }
 
     @Test
+    @DisplayName("todo 조회 api")
     void getTodos() throws Exception {
 
+        //given
+        //mock 데이터 생성
+        List<TodoResponseServiceDto> serviceDto =
+                createTodoResponseServiceDtos(LocalDate.of(2023, 3, 1), 10);
+
+        given(todoService.findTodoList(anyLong(), any(LocalDate.class), any(LocalDate.class), any(SearchType.class)))
+                .willReturn(serviceDto);
+
+
+        //인증값 설정
+        long memberId = 1L;
+        setDefaultAuthentication(memberId);
+
+        //요청값 설정
         LocalDate from = LocalDate.of(2023, 3, 1);
         LocalDate to = LocalDate.of(2023, 3, 10);
-
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("from", from.toString());
         params.add("to", to.toString());
         params.add("searchType", "START_DATE");
+
+        //비교할 응답값
+        TodoListResponseApiDto responseDto = TodoListResponseApiDto.of(serviceDto);
+        String content = objectMapper.writeValueAsString(ApiResponse.ok(responseDto));
 
         //when
         ResultActions actions = mockMvc.perform(getBuilder(withDefaultUrl(), params)
@@ -44,7 +79,7 @@ class TodoControllerTest extends ControllerTest {
         actions
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().string("[]"))
+                .andExpect(content().string(content))
         ;
 
         //restDocs
@@ -57,30 +92,90 @@ class TodoControllerTest extends ControllerTest {
                                 parameterWithName("searchType").description("검색 타입")
                         ),
                         getListResponseFields(
-                                fieldWithPath("data.dayPlans").type(ARRAY).description("일정 목록"),
-                                fieldWithPath("data.dayPlans[].id").type(NUMBER).description("일정 id"),
-                                fieldWithPath("data.dayPlans[].content").type(STRING).description("일정 내용"),
-                                fieldWithPath("data.dayPlans[].date").type(STRING).description("일정 날짜"),
-                                fieldWithPath("data.dayPlans[].startTime").type(STRING).description("일정 시작 시간"),
-                                fieldWithPath("data.dayPlans[].endTime").type(STRING).description("일정 종료 시간"),
-                                fieldWithPath("data.dayPlans[].done").type(BOOLEAN).description("일정 완료 여부"),
-                                fieldWithPath("data.dayPlans[].todoId").type(NUMBER).description("일정에 연결된 todo id")
+                                fieldWithPath("data.todos").type(ARRAY).description("todo 목록"),
+                                fieldWithPath("data.todos[].id").type(NUMBER).description("todo id"),
+                                fieldWithPath("data.todos[].importance").type(STRING).description("todo 중요도"),
+                                fieldWithPath("data.todos[].content").type(STRING).description("todo 내용"),
+                                fieldWithPath("data.todos[].startDate").type(STRING).description("todo 시작 예정일"),
+                                fieldWithPath("data.todos[].deadLine").type(STRING).description("todo 마감 예정일"),
+                                fieldWithPath("data.todos[].doneDate").type(STRING).description("todo 완료일"),
+                                fieldWithPath("data.todos[].done").type(BOOLEAN).description("todo 완료 여부")
                         )
                 ));
-
-
-
     }
 
     @Test
-    void createTodo() {
+    @DisplayName("todo 생성 api")
+    void createTodo() throws Exception {
+        //given
+        //생성 api request dto
+        TodoCreateApiDto dto = TodoCreateApiDto.builder()
+                .content("content")
+                .importance(Importance.BLUE)
+                .startDate(LocalDate.of(2023, 3, 1))
+                .deadLine(LocalDate.of(2023, 3, 10))
+                .build();
+
+        String content = objectMapper.writeValueAsString(dto);
+
+        //인증값 설정
+        long memberId = 1L;
+        setDefaultAuthentication(memberId);
+
+        //mock 데이터 생성
+        given(todoService.saveTodo(anyLong(), any(TodoCreateServiceDto.class)))
+                .willReturn(TodoResponseServiceDto.builder().build());
+
+        //when
+        ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content)
+                .header(AuthConstant.AUTHORIZATION, getAuthorizationToken()));
+
+        //then
+        actions
+                .andDo(print())
+                .andExpect(status().isCreated())
+        ;
+
+        //restDocs
+        actions
+                .andDo(documentHandler.document(
+                        getTokenRequestHeader(),
+                        requestFields(
+                                fieldWithPath("content").type(STRING).description("todo 내용"),
+                                fieldWithPath("importance").type(STRING).description("todo 중요도"),
+                                fieldWithPath("startDate").type(STRING).description("todo 시작 예정일"),
+                                fieldWithPath("deadLine").type(STRING).description("todo 마감 예정일")
+                        )
+                ));
     }
 
     @Test
+    @DisplayName("todo 수정 api")
     void updateTodo() {
     }
 
     @Test
     void deleteTodo() {
+    }
+
+    List<TodoResponseServiceDto> createTodoResponseServiceDtos(LocalDate startDate, int count){
+        List<TodoResponseServiceDto> dtos = new ArrayList<>();
+        for (int i = 1; i <= count; i++) {
+            dtos.add(createTodoResponseServiceDto((long) i, startDate.plusDays(i - 1)));
+        }
+        return dtos;
+    }
+
+    TodoResponseServiceDto createTodoResponseServiceDto(Long todoId, LocalDate startDate){
+        return TodoResponseServiceDto.builder()
+                .id(todoId)
+                .content("content")
+                .importance(Importance.RED)
+                .startDate(startDate)
+                .deadLine(startDate.plusDays(2))
+                .doneDate(startDate.plusDays(1))
+                .isDone(true)
+                .build();
+
     }
 }
