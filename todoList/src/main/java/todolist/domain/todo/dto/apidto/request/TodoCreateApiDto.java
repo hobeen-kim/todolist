@@ -1,6 +1,7 @@
 package todolist.domain.todo.dto.apidto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,11 +20,11 @@ public class TodoCreateApiDto {
 
     @NotBlank(message = "{validation.content}")
     private String content;
-    @NotBlank(message = "{validation.importance}")
+    @NotNull(message = "{validation.importance}")
     private Importance importance;
-    @NotBlank(message = "{validation.date}")
+    @NotNull(message = "{validation.date}")
     private LocalDate startDate;
-    @NotBlank(message = "{validation.date}")
+    @NotNull(message = "{validation.date}")
     private LocalDate deadLine;
 
     public TodoCreateServiceDto toServiceDto() {

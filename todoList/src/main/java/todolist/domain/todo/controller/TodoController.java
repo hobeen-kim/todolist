@@ -1,9 +1,12 @@
 package todolist.domain.todo.controller;
 
 import com.google.protobuf.Api;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import todolist.auth.utils.SecurityUtil;
 import todolist.domain.dayplan.dto.apidto.response.DayPlanListResponseApiDto;
@@ -23,6 +26,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/api/todos")
+@Validated
 public class TodoController {
 
     private final TodoService todoService;
@@ -35,7 +39,10 @@ public class TodoController {
      * @return 할 일 목록
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<TodoListResponseApiDto>> getTodos(LocalDate from, LocalDate to, SearchType searchType){
+    public ResponseEntity<ApiResponse<TodoListResponseApiDto>> getTodos(
+            LocalDate from,
+            LocalDate to,
+            @NotNull(message = "{validation.searchType}") SearchType searchType){
 
         Long memberId = SecurityUtil.getCurrentId();
 
@@ -52,7 +59,7 @@ public class TodoController {
      * @return 201 응답만 반환합니다.
      */
     @PostMapping
-    public ResponseEntity<Void> createTodo(@RequestBody TodoCreateApiDto dto){
+    public ResponseEntity<Void> createTodo(@RequestBody @Valid TodoCreateApiDto dto){
 
         Long memberId = SecurityUtil.getCurrentId();
 

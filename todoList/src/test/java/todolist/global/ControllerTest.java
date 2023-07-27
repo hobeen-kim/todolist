@@ -1,5 +1,7 @@
 package todolist.global;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
@@ -24,6 +26,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import todolist.auth.service.CustomUserDetails;
@@ -34,8 +38,10 @@ import todolist.domain.member.service.MemberService;
 import todolist.domain.todo.controller.TodoController;
 import todolist.domain.todo.service.TodoService;
 import org.springframework.restdocs.snippet.Attributes;
+import todolist.global.reponse.ApiResponse;
 
 
+import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
@@ -78,11 +84,17 @@ public abstract class ControllerTest implements ControllerTestHelper{
                 preprocessResponse(prettyPrint())
         );
 
-        this.mockMvc = webAppContextSetup(context)
+        DefaultMockMvcBuilder mockMvcBuilder = webAppContextSetup(context)
                 .apply(documentationConfiguration(restDocumentation))
-                .alwaysDo(documentHandler)
-                .addFilters(new CharacterEncodingFilter("UTF-8", true))
-                .build();
+                .addFilters(new CharacterEncodingFilter("UTF-8", true));
+
+
+        //validation 은 문서화하지 않음
+        if(!methodName.contains("validation")){
+            mockMvcBuilder.alwaysDo(documentHandler);
+        }
+
+        mockMvc = mockMvcBuilder.build();
     }
 
     protected static String generateLinkCode(Class<?> clazz) {
@@ -155,6 +167,21 @@ public abstract class ControllerTest implements ControllerTestHelper{
 
         return responseFieldsSnippet;
     }
+
+    /**
+     * ResultActions 에서 ApiResponse 를 가져온다.
+     * @param actions ResultActions
+     * @param clazz ApiResponse 의 data 타입
+     * @return ApiResponse
+     */
+    protected <T> ApiResponse<T> getApiResponseFromResult(ResultActions actions, Class<T> clazz) throws UnsupportedEncodingException, JsonProcessingException {
+        String contentAsString = actions.andReturn().getResponse().getContentAsString();
+
+        JavaType javaType = objectMapper.getTypeFactory().constructParametricType(ApiResponse.class, clazz);
+
+        return objectMapper.readValue(contentAsString, javaType);
+    }
+
     protected Member createMemberDefault(){
         return Member.builder()
                 .username("test")

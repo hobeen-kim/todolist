@@ -359,15 +359,6 @@ class DayPlanControllerTest extends ControllerTest {
 
                 })
         );
-
-    }
-
-    protected <T> ApiResponse<T> getApiResponseFromResult(ResultActions actions, Class<T> clazz) throws UnsupportedEncodingException, JsonProcessingException {
-        String contentAsString = actions.andReturn().getResponse().getContentAsString();
-
-        JavaType javaType = objectMapper.getTypeFactory().constructParametricType(ApiResponse.class, clazz);
-
-        return objectMapper.readValue(contentAsString, javaType);
     }
 
 

@@ -1,15 +1,17 @@
-package todolist.auth.Filter;
+package todolist.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.DynamicTest;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.restdocs.RestDocumentationExtension;
+import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
+import org.springframework.restdocs.snippet.Attributes;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,29 +24,55 @@ import todolist.auth.dto.LoginDto;
 import todolist.auth.service.CustomUserDetails;
 import todolist.auth.service.TokenProvider;
 import todolist.domain.member.entity.Member;
+import todolist.global.ControllerTestHelper;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static todolist.auth.utils.AuthConstant.*;
 
-@AutoConfigureMockMvc
+@AutoConfigureRestDocs
 @Transactional
 @SpringBootTest
-class AuthTest {
-
+@AutoConfigureMockMvc
+@ExtendWith({RestDocumentationExtension.class})
+class AuthTest implements ControllerTestHelper {
     public static final String PATH_PREFIX = "http://localhost";
+
     public static final String MOCK_AUTH_PATH = "/mock";
     @Autowired private MockMvc mockMvc;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private EntityManager em;
     @Autowired private TokenProvider tokenProvider;
 
+    @Override
+    public String getUrl() {
+        return "/v1/auth";
+    }
+
+    protected RestDocumentationResultHandler documentHandler;
+
+    @BeforeEach
+    void setUp(TestInfo testInfo) {
+
+        String methodName = testInfo.getTestMethod().orElseThrow().getName().toLowerCase();
+
+        documentHandler = document(
+                "auth/" + methodName,
+                preprocessRequest(prettyPrint()),
+                preprocessResponse(prettyPrint())
+        );
+    }
 
     @Test
     @DisplayName("로그인에 성공하면 헤더 값으로 accessToken, refreshToken 을 담아서 응답한다.")
@@ -57,15 +85,26 @@ class AuthTest {
         String content = new ObjectMapper().writeValueAsString(loginDto);
 
         //when
-        ResultActions actions = mockMvc.perform(post(LOGIN_PATH)
-                .content(content)
-                .contentType(MediaType.APPLICATION_JSON));
+        ResultActions actions = mockMvc.perform(postBuilder("/login", content));
 
         //then
         actions
                 .andExpect(status().isOk())
                 .andExpect(header().exists(AUTHORIZATION))
                 .andExpect(header().exists(REFRESH));
+
+        //restDocs
+        actions.andDo(
+                documentHandler.document(
+                requestFields(
+                        fieldWithPath("username").description("로그인할 아이디"),
+                        fieldWithPath("password").description("로그인할 비밀번호")
+                ),
+                responseHeaders(
+                        headerWithName(AUTHORIZATION).description("accessToken").attributes(getFormat("Bearer ABC.ABC.ABC")),
+                        headerWithName(REFRESH).description("refreshToken").attributes(getFormat("ABC.ABC.ABC"))
+                )
+        ));
     }
 
 
@@ -135,7 +174,7 @@ class AuthTest {
         actions
                 .andExpect(status().isOk());
     }
-    
+
     @Test
     @DisplayName("accessToken 이 만료되면 401 에러와 AUTH-401, \"인증 유효기간이 만료되었습니다.\" 메세지를 담아서 응답한다.")
     void authenticationExpired() throws Exception {
@@ -161,7 +200,7 @@ class AuthTest {
 
     @Test
     @DisplayName("refreshToken 을 헤더에 담아서 accessToken 을 재발급 받을 수 있다.")
-    void refreshTokenIssue() throws Exception {
+    void refreshToken() throws Exception {
         //given
         Member member = createMember("test", "1234");
         String refreshToken = createRefreshToken(member, 10000L);
@@ -175,6 +214,18 @@ class AuthTest {
         actions
                 .andExpect(status().isOk())
                 .andExpect(header().exists(AUTHORIZATION));
+
+        //restdocs
+        actions.andDo(
+                documentHandler.document(
+                        requestHeaders(
+                                headerWithName(REFRESH).description("refreshToken").attributes(getFormat("ABC.ABC.ABC"))
+                        ),
+                        responseHeaders(
+                                headerWithName(AUTHORIZATION).description("accessToken").attributes(getFormat("Bearer ABC.ABC.ABC"))
+                        )
+                )
+        );
     }
 
     @TestFactory
@@ -311,5 +362,10 @@ class AuthTest {
                 member.getPassword(),
                 Collections.singleton(grantedAuthority)
         );
+    }
+
+    private Attributes.Attribute getFormat(
+            final String value){
+        return new Attributes.Attribute("format",value);
     }
 }
