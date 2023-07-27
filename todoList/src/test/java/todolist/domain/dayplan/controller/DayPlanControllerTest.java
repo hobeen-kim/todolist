@@ -89,8 +89,6 @@ class DayPlanControllerTest extends ControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(content));
 
-        ApiResponse response = getApiResponseFromResult(actions, DayPlanListResponseApiDto.class);
-
         //restdocs
         actions
                 .andDo(documentHandler.document(
