@@ -12,17 +12,11 @@ import java.time.LocalTime;
 public class DayPlanResponseApiDto {
 
     private Long id;
-
     private LocalDate date;
-
     private LocalTime startTime;
-
     private LocalTime endTime;
-
     private String content;
-
     private boolean isDone;
-
     private Long todoId;
 
     public static DayPlanResponseApiDto of(DayPlanResponseServiceDto dto){

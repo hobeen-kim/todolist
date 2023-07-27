@@ -31,6 +31,7 @@ import todolist.domain.dayplan.controller.DayPlanController;
 import todolist.domain.dayplan.service.DayPlanService;
 import todolist.domain.member.entity.Member;
 import todolist.domain.member.service.MemberService;
+import todolist.domain.todo.controller.TodoController;
 import todolist.domain.todo.service.TodoService;
 import org.springframework.restdocs.snippet.Attributes;
 
@@ -49,7 +50,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import static todolist.auth.utils.AuthConstant.AUTHORIZATION;
 
 @ExtendWith({RestDocumentationExtension.class})
-@WebMvcTest({DayPlanController.class})
+@WebMvcTest({DayPlanController.class, TodoController.class}) //ocp 위반... 어떻게 해결하지?
 @MockBean(JpaMetamodelMappingContext.class)
 public abstract class ControllerTest implements ControllerTestHelper{
 

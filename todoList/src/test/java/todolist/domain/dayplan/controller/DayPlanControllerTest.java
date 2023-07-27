@@ -6,8 +6,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
-import org.springframework.restdocs.payload.FieldDescriptor;
-import org.springframework.restdocs.payload.ResponseFieldsSnippet;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -35,10 +33,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
-import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.payload.JsonFieldType.*;
-import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -49,7 +46,7 @@ class DayPlanControllerTest extends ControllerTest {
 
     @Override
     public String getUrl() {
-        return "v1/api/dayplans";
+        return "/v1/api/dayplans";
     }
 
     @Test
@@ -62,7 +59,7 @@ class DayPlanControllerTest extends ControllerTest {
                 createDayPlanResponseServiceDtos(LocalDate.of(2023, 3, 1), 10);
 
         given(dayPlanService.findDayPlanList(anyLong(), any(LocalDate.class), any(LocalDate.class)))
-        .willReturn(serviceDto);
+            .willReturn(serviceDto);
 
         //비교할 응답값
         DayPlanListResponseApiDto responseDto = DayPlanListResponseApiDto.of(serviceDto);
@@ -88,8 +85,6 @@ class DayPlanControllerTest extends ControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string(content));
-
-        ApiResponse response = getApiResponseFromResult(actions, DayPlanListResponseApiDto.class);
 
         //restdocs
         actions

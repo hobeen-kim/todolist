@@ -2,6 +2,7 @@ package todolist.domain.todo.dto.servicedto;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import todolist.domain.todo.entity.Importance;
 import todolist.domain.todo.entity.Todo;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 public class TodoResponseServiceDto {
 
     private Long id;
