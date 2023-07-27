@@ -1,0 +1,5 @@
+== 플레이어
+
+=== 플레이어 생성
+operation::player-create[snippets='http-request,http-response,response-fields']
+
