@@ -3,6 +3,8 @@ package todolist.domain.member.service;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import todolist.domain.dayplan.entity.DayPlan;
 import todolist.domain.member.dto.servicedto.MemberCreateServiceDto;
@@ -12,12 +14,14 @@ import todolist.domain.member.entity.Member;
 import todolist.domain.member.repository.MemberRepository;
 import todolist.domain.todo.entity.Todo;
 import todolist.global.ServiceTest;
-import todolist.global.exception.buinessexception.memberexception.MemberAccessDeniedException;
 import todolist.global.exception.buinessexception.memberexception.MemberNotFoundException;
 import todolist.global.exception.buinessexception.memberexception.MemberPasswordException;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -85,6 +89,27 @@ class MemberServiceTest extends ServiceTest {
 
         assertThat(exception.getMessage()).isEqualTo(MemberNotFoundException.MESSAGE);
         assertThat(exception.getErrorCode()).isEqualTo(MemberNotFoundException.CODE);
+    }
+
+    @Test
+    @DisplayName("회원 목록을 페이징으로 조회한다.")
+    void findMemberList() {
+        //given
+        List<Member> members = createMembers(100);
+        memberRepository.saveAll(members);
+
+        PageRequest pageRequest = PageRequest.of(0, 10);
+
+        //when
+        Page<MemberResponseServiceDto> memberList = memberService.findMemberList(pageRequest);
+
+        //then
+        assertThat(memberList.getTotalElements()).isEqualTo(members.size());
+        assertThat(memberList.getTotalPages()).isEqualTo(10);
+        assertThat(memberList.getNumber()).isEqualTo(0);
+        assertThat(memberList.getSize()).isEqualTo(10);
+        assertThat(memberList.getContent()).hasSize(10)
+                .extracting("id").containsExactlyElementsOf(List.of(100L, 99L, 98L, 97L, 96L, 95L, 94L, 93L, 92L, 91L));
     }
 
     @Test
@@ -172,38 +197,26 @@ class MemberServiceTest extends ServiceTest {
     }
 
     @Test
-    @DisplayName("admin 계정으로 특정 회원의 권한을 변경한다.")
+    @DisplayName("회원의 권한을 변경한다.")
     void changeAuthority() {
         //given
-        Member admin = createMember(Authority.ROLE_ADMIN);
         Member user = createMember(Authority.ROLE_USER);
 
-        memberRepository.save(admin);
         memberRepository.save(user);
 
         //when
-        memberService.changeAuthority(admin.getId(), user.getId(), Authority.ROLE_ADMIN);
+        memberService.changeAuthority(user.getId(), Authority.ROLE_ADMIN);
 
         //then
         assertThat(user.getAuthority()).isEqualTo(Authority.ROLE_ADMIN);
     }
 
-    @Test
-    @DisplayName("admin 계정이 아니면 권한을 변경할 때 MemberAccessDeniedException 을 발생시킨다.")
-    void changeAuthorityException() {
-        //given
-        Member user1 = createMember(Authority.ROLE_USER);
-        Member user2 = createMember(Authority.ROLE_USER);
-
-        memberRepository.save(user1);
-        memberRepository.save(user2);
-
-        //when //then
-        MemberAccessDeniedException exception = assertThrows(MemberAccessDeniedException.class,
-                () -> memberService.changeAuthority(user1.getId(), user2.getId(), Authority.ROLE_ADMIN));
-
-        assertThat(exception.getMessage()).isEqualTo(MemberAccessDeniedException.MESSAGE);
-        assertThat(exception.getErrorCode()).isEqualTo(MemberAccessDeniedException.CODE);
+    List<Member> createMembers(int count){
+        List<Member> members = new ArrayList<>();
+        for (int i = 1; i <= count; i++) {
+            members.add(createMemberUsername("test " + i));
+        }
+        return members;
     }
 
     Member createMemberDefault() {
@@ -211,6 +224,7 @@ class MemberServiceTest extends ServiceTest {
                 .name("test")
                 .username("test")
                 .password("1234")
+                .authority(Authority.ROLE_USER)
                 .email("test@test.com")
                 .build();
     }
@@ -221,6 +235,16 @@ class MemberServiceTest extends ServiceTest {
                 .username("test")
                 .password("1234")
                 .authority(authority)
+                .email("test@test.com")
+                .build();
+    }
+
+    Member createMemberUsername(String username) {
+        return Member.builder()
+                .name(username)
+                .username("test")
+                .password("1234")
+                .authority(Authority.ROLE_USER)
                 .email("test@test.com")
                 .build();
     }

@@ -16,6 +16,8 @@ public class MemberController {
 
     //todo : 회원 정보 조회 기능
 
+    //todo : 회원 목록 조회 (admin 권한)
+
     //todo : 비밀번호 변경 기능
 
     //todo : 회원 탈퇴 기능

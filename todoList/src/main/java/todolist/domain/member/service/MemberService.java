@@ -1,6 +1,10 @@
 package todolist.domain.member.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +58,19 @@ public class MemberService {
     }
 
     /**
+     * 회원 리스트를 조회합니다. admin 만 접근 가능한 기능입니다. (역순 조회)
+     * @param pageable 페이지 정보
+     * @return 조회된 회원 리스트
+     */
+    public Page<MemberResponseServiceDto> findMemberList(Pageable pageable) {
+
+        PageRequest pageReverse = pageReverse(pageable);
+
+        return memberRepository.findAll(pageReverse).map(MemberResponseServiceDto::of);
+    }
+
+
+    /**
      * 비밀번호를 변경합니다.
      * @param id 변경할 회원의 id
      * @param prevPassword 이전 비밀번호 (plain)
@@ -86,25 +103,15 @@ public class MemberService {
 
     /**
      * 권한을 변경합니다. Role_ADMIN 만 접근 가능한 기능입니다.
-     * @param id admin 의 ID
      * @param changeId 권한을 변경할 회원의 ID
      * @param authority 변경할 권한
      */
     @Transactional
-    public void changeAuthority(Long id, Long changeId, Authority authority) {
-
-        Member member = findMemberById(id);
-
-        verifyAdmin(member);
+    public void changeAuthority(Long changeId, Authority authority) {
 
         Member changeMember = findMemberById(changeId);
 
         changeMember.changeAuthority(authority);
-    }
-
-    private void verifyAdmin(Member member) {
-        if(!member.getAuthority().equals(Authority.ROLE_ADMIN))
-            throw new MemberAccessDeniedException();
     }
 
     private void passwordCheck(String prevPassword, Member member) {
@@ -116,4 +123,11 @@ public class MemberService {
         return userDetailsService.loadUserById(id);
     }
 
+
+    private PageRequest pageReverse(Pageable pageable) {
+        int pageNumber = pageable.getPageNumber();
+        int pageSize = pageable.getPageSize();
+        Sort sort = Sort.by(Sort.Order.desc("id"));
+        return PageRequest.of(pageNumber, pageSize, sort);
+    }
 }
