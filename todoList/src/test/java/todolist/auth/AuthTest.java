@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import todolist.auth.dto.LoginDto;
 import todolist.auth.service.CustomUserDetails;
 import todolist.auth.service.TokenProvider;
+import todolist.domain.member.entity.Authority;
 import todolist.domain.member.entity.Member;
 import todolist.global.ControllerTestHelper;
 
@@ -321,7 +322,6 @@ class AuthTest implements ControllerTestHelper {
     }
 
 
-
     private String createAccessToken(Member member, long accessTokenExpireTime) {
         UserDetails userDetails = createUserDetails(member);
 
@@ -346,6 +346,7 @@ class AuthTest implements ControllerTestHelper {
                 .name("test")
                 .username(username)
                 .password(passwordEncoder.encode(password))
+                .authority(Authority.ROLE_USER)
                 .build();
 
         em.persist(member);

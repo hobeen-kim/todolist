@@ -3,6 +3,7 @@ package todolist.domain.dayplan.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import todolist.auth.service.CustomUserDetailsService;
 import todolist.domain.dayplan.dto.servicedto.DayPlanCreateServiceDto;
 import todolist.domain.dayplan.dto.servicedto.DayPlanResponseServiceDto;
 import todolist.domain.dayplan.dto.servicedto.DayPlanUpdateServiceDto;
@@ -26,7 +27,7 @@ import java.util.Optional;
 public class DayPlanService {
 
     private final DayPlanRepository dayPlanRepository;
-    private final MemberService memberService;
+    private final CustomUserDetailsService userDetailsService;
     private final TodoRepository todoRepository;
 
     /**
@@ -123,7 +124,7 @@ public class DayPlanService {
     }
 
     private Member verifiedMember(Long memberId){
-        return memberService.findMember(memberId);
+        return userDetailsService.loadUserById(memberId);
     }
 
     private Todo verifiedTodo(Long memberId, Long todoId){

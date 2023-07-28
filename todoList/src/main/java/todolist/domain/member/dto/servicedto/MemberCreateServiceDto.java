@@ -1,4 +1,4 @@
-package todolist.domain.member.dto;
+package todolist.domain.member.dto.servicedto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

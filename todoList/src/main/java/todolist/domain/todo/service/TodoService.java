@@ -1,8 +1,10 @@
 package todolist.domain.todo.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import todolist.auth.service.CustomUserDetailsService;
 import todolist.domain.member.entity.Member;
 import todolist.domain.member.service.MemberService;
 import todolist.domain.todo.dto.servicedto.TodoResponseServiceDto;
@@ -24,7 +26,7 @@ import java.util.List;
 public class TodoService {
 
     private final TodoRepository todoRepository;
-    private final MemberService memberService;
+    private final CustomUserDetailsService userDetailsService;
 
 
     /**
@@ -108,7 +110,7 @@ public class TodoService {
     }
 
     private Member verifiedMember(Long memberId){
-        return memberService.findMember(memberId);
+        return userDetailsService.loadUserById(memberId);
     }
 
     private Todo verifiedTodo(Long memberId, Long todoId){

@@ -4,16 +4,24 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import todolist.domain.member.dto.MemberCreateServiceDto;
+import todolist.domain.dayplan.entity.DayPlan;
+import todolist.domain.member.dto.servicedto.MemberCreateServiceDto;
+import todolist.domain.member.dto.servicedto.MemberResponseServiceDto;
 import todolist.domain.member.entity.Authority;
 import todolist.domain.member.entity.Member;
 import todolist.domain.member.repository.MemberRepository;
+import todolist.domain.todo.entity.Todo;
 import todolist.global.ServiceTest;
+import todolist.global.exception.buinessexception.memberexception.MemberAccessDeniedException;
 import todolist.global.exception.buinessexception.memberexception.MemberNotFoundException;
 import todolist.global.exception.buinessexception.memberexception.MemberPasswordException;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static todolist.domain.todo.entity.Importance.RED;
 
 class MemberServiceTest extends ServiceTest {
 
@@ -22,12 +30,13 @@ class MemberServiceTest extends ServiceTest {
     @Autowired PasswordEncoder passwordEncoder;
 
     @Test
-    @DisplayName("name 과 email, password 을 받아서 Member 를 생성, 저장하고 MemberId 를 반환한다.")
+    @DisplayName("name 과 username, email, password 을 받아서 Member 를 생성, 저장하고 MemberId 를 반환한다.")
     void saveMember() {
         //given
         MemberCreateServiceDto dto = MemberCreateServiceDto.builder()
                 .name("test")
                 .username("test")
+                .email("test@test.com")
                 .password("1234")
                 .build();
 
@@ -40,6 +49,7 @@ class MemberServiceTest extends ServiceTest {
         assertThat(member.getId()).isEqualTo(memberId);
         assertThat(member.getName()).isEqualTo(dto.getName());
         assertThat(member.getUsername()).isEqualTo(dto.getUsername());
+        assertThat(member.getEmail()).isEqualTo(dto.getEmail());
         assertThat(passwordEncoder.matches(dto.getPassword(), member.getPassword())).isTrue();
         assertThat(member.getAuthority()).isEqualTo(Authority.ROLE_USER);
     }
@@ -52,12 +62,15 @@ class MemberServiceTest extends ServiceTest {
         Member savedMember = memberRepository.save(createMemberDefault());
 
         //when
-        Member findMember = memberService.findMember(savedMember.getId());
+        MemberResponseServiceDto dto = memberService.findMember(savedMember.getId());
 
         //then
-        assertThat(findMember.getId()).isEqualTo(savedMember.getId());
-        assertThat(findMember.getName()).isEqualTo(savedMember.getName());
-        assertThat(findMember.getUsername()).isEqualTo(savedMember.getUsername());
+        assertThat(dto.getId()).isEqualTo(savedMember.getId());
+        assertThat(dto.getName()).isEqualTo(savedMember.getName());
+        assertThat(dto.getUsername()).isEqualTo(savedMember.getUsername());
+        assertThat(dto.getEmail()).isEqualTo(savedMember.getEmail());
+        assertThat(dto.getAuthority()).isEqualTo(savedMember.getAuthority());
+        assertThat(dto.getCreatedDate()).isEqualTo(savedMember.getCreatedDate());
     }
 
     @Test
@@ -111,11 +124,103 @@ class MemberServiceTest extends ServiceTest {
         assertThat(exception.getErrorCode()).isEqualTo(MemberPasswordException.CODE);
     }
 
+    @Test
+    @DisplayName("회원 탈퇴 시 Member 를 삭제한다. 이때 연관된 todo, dayPlan 도 자동으로 삭제된다.")
+    void withdrawal() {
+        //given
+        String password = "1234";
+        String encodedPassword = passwordEncoder.encode(password);
+        Member member = createMember(encodedPassword);
+
+        Todo todo = createTodo();
+        DayPlan dayPlan = createDayPlan();
+
+        member.addTodos(todo);
+        member.addDayPlans(dayPlan);
+
+        memberRepository.save(member);
+
+        //when
+        memberService.withdrawal(member.getId(), password);
+
+        //then
+        Member findMember = em.find(Member.class, member.getId());
+        assertThat(findMember).isNull();
+
+        Todo findTodo = em.find(Todo.class, todo.getId());
+        assertThat(findTodo).isNull();
+
+        DayPlan findDayPlan = em.find(DayPlan.class, dayPlan.getId());
+        assertThat(findDayPlan).isNull();
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 시 이전 비밀번호가 다르면 MemberPasswordException 을 발생시킨다.")
+    void withdrawalException() {
+        //given
+        String password = "1234";
+        String encodedPassword = passwordEncoder.encode(password);
+        Member member = createMember(encodedPassword);
+        memberRepository.save(member);
+
+        //when & then
+        MemberPasswordException exception = assertThrows(MemberPasswordException.class,
+                () -> memberService.withdrawal(member.getId(), password + "1"));//다른 pw
+
+        assertThat(exception.getMessage()).isEqualTo(MemberPasswordException.MESSAGE);
+        assertThat(exception.getErrorCode()).isEqualTo(MemberPasswordException.CODE);
+    }
+
+    @Test
+    @DisplayName("admin 계정으로 특정 회원의 권한을 변경한다.")
+    void changeAuthority() {
+        //given
+        Member admin = createMember(Authority.ROLE_ADMIN);
+        Member user = createMember(Authority.ROLE_USER);
+
+        memberRepository.save(admin);
+        memberRepository.save(user);
+
+        //when
+        memberService.changeAuthority(admin.getId(), user.getId(), Authority.ROLE_ADMIN);
+
+        //then
+        assertThat(user.getAuthority()).isEqualTo(Authority.ROLE_ADMIN);
+    }
+
+    @Test
+    @DisplayName("admin 계정이 아니면 권한을 변경할 때 MemberAccessDeniedException 을 발생시킨다.")
+    void changeAuthorityException() {
+        //given
+        Member user1 = createMember(Authority.ROLE_USER);
+        Member user2 = createMember(Authority.ROLE_USER);
+
+        memberRepository.save(user1);
+        memberRepository.save(user2);
+
+        //when //then
+        MemberAccessDeniedException exception = assertThrows(MemberAccessDeniedException.class,
+                () -> memberService.changeAuthority(user1.getId(), user2.getId(), Authority.ROLE_ADMIN));
+
+        assertThat(exception.getMessage()).isEqualTo(MemberAccessDeniedException.MESSAGE);
+        assertThat(exception.getErrorCode()).isEqualTo(MemberAccessDeniedException.CODE);
+    }
+
     Member createMemberDefault() {
         return Member.builder()
                 .name("test")
                 .username("test")
                 .password("1234")
+                .email("test@test.com")
+                .build();
+    }
+
+    Member createMember(Authority authority) {
+        return Member.builder()
+                .name("test")
+                .username("test")
+                .password("1234")
+                .authority(authority)
                 .email("test@test.com")
                 .build();
     }
@@ -126,6 +231,23 @@ class MemberServiceTest extends ServiceTest {
                 .username("test")
                 .password(password)
                 .email("test@test.com")
+                .build();
+    }
+
+    Todo createTodo(){
+        return Todo.builder()
+                .content("test")
+                .importance(RED)
+                .deadLine(LocalDate.of(2023, 7, 21))
+                .build();
+    }
+
+    DayPlan createDayPlan(){
+        return DayPlan.builder()
+                .content("test")
+                .date(LocalDate.of(2023, 7, 20))
+                .startTime(LocalTime.of(12, 0, 0))
+                .endTime(LocalTime.of(12, 20, 0))
                 .build();
     }
 }

@@ -31,7 +31,7 @@ public class Member extends BaseEntity {
     private String email;
 
     @Enumerated(EnumType.STRING)
-    private Authority authority = Authority.ROLE_USER;
+    private Authority authority;
 
     // todos 의 생명주기는 member 에 의존한다.
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
@@ -42,11 +42,12 @@ public class Member extends BaseEntity {
     private List<DayPlan> dayPlans = new ArrayList<>();
 
     @Builder
-    private Member(String name, String username, String password, String email) {
+    private Member(String name, String username, String password, String email, Authority authority) {
         this.name = name;
         this.username = username;
         this.password = password;
         this.email = email;
+        this.authority = authority;
     }
 
     //==연관관계 메서드==//
@@ -72,12 +73,7 @@ public class Member extends BaseEntity {
     //==생성 메서드==//
     public static Member createMember(String name, String username, String password, String email) {
 
-        return Member.builder()
-                .name(name)
-                .username(username)
-                .password(password)
-                .email(email)
-                .build();
+        return new Member(name, username, password, email, Authority.ROLE_USER);
     }
 
     //==비즈니스 메서드==//

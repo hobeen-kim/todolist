@@ -33,6 +33,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 import todolist.auth.service.CustomUserDetails;
 import todolist.domain.dayplan.controller.DayPlanController;
 import todolist.domain.dayplan.service.DayPlanService;
+import todolist.domain.member.entity.Authority;
 import todolist.domain.member.entity.Member;
 import todolist.domain.member.service.MemberService;
 import todolist.domain.todo.controller.TodoController;
@@ -187,6 +188,7 @@ public abstract class ControllerTest implements ControllerTestHelper{
                 .username("test")
                 .password("1234")
                 .email("test@test.com")
+                .authority(Authority.ROLE_USER)
                 .build();
     }
 

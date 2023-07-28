@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import todolist.domain.member.entity.Member;
 import todolist.domain.member.repository.MemberRepository;
+import todolist.global.exception.buinessexception.memberexception.MemberNotFoundException;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -27,6 +28,12 @@ public class CustomUserDetailsService implements UserDetailsService {
         return memberRepository.findByUsername(username)
                 .map(this::createUserDetails)
                 .orElseThrow(() -> new UsernameNotFoundException("아이디가 존재하지 않습니다."));
+    }
+
+    //todo:이걸 여기 선언하고 사용해도 되는지 의문(srp 위반 ?)
+    public Member loadUserById(Long id) {
+        return memberRepository.findById(id)
+                .orElseThrow(MemberNotFoundException::new);
     }
 
     private UserDetails createUserDetails(Member member) {
