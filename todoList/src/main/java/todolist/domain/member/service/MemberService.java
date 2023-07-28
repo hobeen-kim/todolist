@@ -15,7 +15,6 @@ import todolist.domain.member.entity.Authority;
 import todolist.domain.member.entity.Member;
 import todolist.domain.member.repository.MemberRepository;
 import todolist.global.exception.buinessexception.memberexception.MemberAccessDeniedException;
-import todolist.global.exception.buinessexception.memberexception.MemberNotFoundException;
 import todolist.global.exception.buinessexception.memberexception.MemberPasswordException;
 
 @Transactional(readOnly = true)
@@ -88,17 +87,16 @@ public class MemberService {
 
     /**
      * 회원 탈퇴 기능입니다.
-     * @param id 탈퇴할 회원의 id
+     * @param currentId 회원 탈퇴를 요청한 회원의 ID (권한이 ADMIN 이면 다른 회원의 탈퇴도 가능합니다.)
+     * @param deleteId 탈퇴시킬 회원의 ID
      * @param password 회원의 비밀번호 (plain)
      */
     @Transactional
-    public void withdrawal(Long id, String password) {
+    public void withdrawal(Long currentId, Long deleteId, String password) {
 
-        Member member = findMemberById(id);
+        Member verifiedMember = checkDeleteAvailableMember(currentId, deleteId, password);
 
-        passwordCheck(password, member);
-
-        memberRepository.delete(member);
+        memberRepository.delete(verifiedMember);
     }
 
     /**
@@ -107,16 +105,43 @@ public class MemberService {
      * @param authority 변경할 권한
      */
     @Transactional
-    public void changeAuthority(Long changeId, Authority authority) {
+    public void changeAuthority(Long adminId, Long changeId, Authority authority) {
+
+        checkAdmin(adminId);
 
         Member changeMember = findMemberById(changeId);
 
         changeMember.changeAuthority(authority);
     }
 
+    private Member checkDeleteAvailableMember(Long currentId, Long deleteId, String password) {
+
+        Member deleteMember = findMemberById(deleteId);
+
+        deleteAvailableCheck(currentId, deleteId);
+        passwordCheck(password, deleteMember);
+
+        return deleteMember;
+    }
+
+    private void deleteAvailableCheck(Long currentId, Long deleteId) {
+        if(!isAdmin(currentId) && !currentId.equals(deleteId)) {
+            throw new MemberAccessDeniedException();
+        }
+    }
+
+    private boolean isAdmin(Long id) {
+        return findMemberById(id).getAuthority().equals(Authority.ROLE_ADMIN);
+    }
+
     private void passwordCheck(String prevPassword, Member member) {
         if(!passwordEncoder.matches(prevPassword, member.getPassword()))
             throw new MemberPasswordException();
+    }
+
+    private void checkAdmin(Long adminId) {
+
+        if(!isAdmin(adminId)) throw new MemberAccessDeniedException();
     }
 
     private Member findMemberById(Long id) {

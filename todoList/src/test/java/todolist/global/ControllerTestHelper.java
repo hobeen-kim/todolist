@@ -65,6 +65,14 @@ public interface ControllerTestHelper {
                 .delete(getUriWithPath(path), uriVariables);
     }
 
+    default MockHttpServletRequestBuilder deleteBuilder(String path, String content, Object... uriVariables) {
+        return RestDocumentationRequestBuilders
+                .delete(getUriWithPath(path), uriVariables)
+                .content(content)
+                .accept(APPLICATION_JSON)
+                .contentType(APPLICATION_JSON);
+    }
+
     String getUrl();
 
     default String getAuthorizationToken(){

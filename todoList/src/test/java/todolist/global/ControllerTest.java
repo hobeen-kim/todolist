@@ -33,6 +33,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 import todolist.auth.service.CustomUserDetails;
 import todolist.domain.dayplan.controller.DayPlanController;
 import todolist.domain.dayplan.service.DayPlanService;
+import todolist.domain.member.controller.MemberController;
 import todolist.domain.member.entity.Authority;
 import todolist.domain.member.entity.Member;
 import todolist.domain.member.service.MemberService;
@@ -57,7 +58,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import static todolist.auth.utils.AuthConstant.AUTHORIZATION;
 
 @ExtendWith({RestDocumentationExtension.class})
-@WebMvcTest({DayPlanController.class, TodoController.class}) //ocp 위반... 어떻게 해결하지?
+@WebMvcTest({DayPlanController.class, TodoController.class, MemberController.class}) //ocp 위반... 어떻게 해결하지?
 @MockBean(JpaMetamodelMappingContext.class)
 public abstract class ControllerTest implements ControllerTestHelper{
 
@@ -164,9 +165,7 @@ public abstract class ControllerTest implements ControllerTestHelper{
                 fieldWithPath("data.pageInfo.hasPrevious").type(BOOLEAN).description("이전 페이지 여부")
         );
 
-        responseFieldsSnippet.and(descriptors);
-
-        return responseFieldsSnippet;
+        return responseFieldsSnippet.and(descriptors);
     }
 
     /**
@@ -192,6 +191,15 @@ public abstract class ControllerTest implements ControllerTestHelper{
                 .build();
     }
 
+    protected Member createMemberAdmin(){
+        return Member.builder()
+                .username("admin")
+                .password("1234")
+                .email("test@test.com")
+                .authority(Authority.ROLE_ADMIN)
+                .build();
+    }
+
     protected void setDefaultAuthentication(Member member){
         UserDetails userDetails = createUserDetails(member);
 
@@ -204,6 +212,16 @@ public abstract class ControllerTest implements ControllerTestHelper{
 
     protected void setDefaultAuthentication(Long id){
         UserDetails userDetails = createUserDetails(id, createMemberDefault());
+
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+
+        SecurityContextImpl securityContext = new SecurityContextImpl(authenticationToken);
+        SecurityContextHolder.setContext(securityContext);
+    }
+
+    protected void setAdminAuthentication(Long id){
+        UserDetails userDetails = createUserDetails(id, createMemberAdmin());
 
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities());

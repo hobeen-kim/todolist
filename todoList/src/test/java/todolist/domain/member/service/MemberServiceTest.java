@@ -14,6 +14,7 @@ import todolist.domain.member.entity.Member;
 import todolist.domain.member.repository.MemberRepository;
 import todolist.domain.todo.entity.Todo;
 import todolist.global.ServiceTest;
+import todolist.global.exception.buinessexception.memberexception.MemberAccessDeniedException;
 import todolist.global.exception.buinessexception.memberexception.MemberNotFoundException;
 import todolist.global.exception.buinessexception.memberexception.MemberPasswordException;
 
@@ -109,7 +110,7 @@ class MemberServiceTest extends ServiceTest {
         assertThat(memberList.getNumber()).isEqualTo(0);
         assertThat(memberList.getSize()).isEqualTo(10);
         assertThat(memberList.getContent()).hasSize(10)
-                .extracting("id").containsExactlyElementsOf(List.of(100L, 99L, 98L, 97L, 96L, 95L, 94L, 93L, 92L, 91L));
+                .extracting("id").contains(members.get(members.size() - 1).getId());
     }
 
     @Test
@@ -166,7 +167,7 @@ class MemberServiceTest extends ServiceTest {
         memberRepository.save(member);
 
         //when
-        memberService.withdrawal(member.getId(), password);
+        memberService.withdrawal(member.getId(), member.getId(), password);
 
         //then
         Member findMember = em.find(Member.class, member.getId());
@@ -190,25 +191,87 @@ class MemberServiceTest extends ServiceTest {
 
         //when & then
         MemberPasswordException exception = assertThrows(MemberPasswordException.class,
-                () -> memberService.withdrawal(member.getId(), password + "1"));//다른 pw
+                () -> memberService.withdrawal(member.getId(), member.getId(), password + "1"));//다른 pw
 
         assertThat(exception.getMessage()).isEqualTo(MemberPasswordException.MESSAGE);
         assertThat(exception.getErrorCode()).isEqualTo(MemberPasswordException.CODE);
     }
 
     @Test
-    @DisplayName("회원의 권한을 변경한다.")
+    @DisplayName("admin 권한으로 다른 회원을 삭제한다.")
+    void withdrawalWithAdmin() {
+        //given
+        String password = "1234";
+        String encodedPassword = passwordEncoder.encode(password);
+        Member user = createMember(encodedPassword);
+
+        Member admin = createMember(Authority.ROLE_ADMIN);
+
+        memberRepository.save(user);
+        memberRepository.save(admin);
+
+        //when
+        memberService.withdrawal(admin.getId(), user.getId(), password);
+
+        //then
+        Member findMember = em.find(Member.class, user.getId());
+        assertThat(findMember).isNull();
+    }
+
+    @Test
+    @DisplayName("admin 권한이 아닐 때 다른 권한을 삭제하려고 하면 MemberAccessDeniedException 이 발생한다.")
+    void withdrawalWithAdminException() {
+        //given
+        String password = "1234";
+        String encodedPassword = passwordEncoder.encode(password);
+        Member user = createMember(encodedPassword);
+
+        Member user2 = createMemberDefault();
+
+        memberRepository.save(user);
+        memberRepository.save(user2);
+
+        //when & then
+        MemberAccessDeniedException exception = assertThrows(MemberAccessDeniedException.class,
+                () -> memberService.withdrawal(user2.getId(), user.getId(), password));
+
+        assertThat(exception.getMessage()).isEqualTo(MemberAccessDeniedException.MESSAGE);
+        assertThat(exception.getErrorCode()).isEqualTo(MemberAccessDeniedException.CODE);
+    }
+
+    @Test
+    @DisplayName("admin 권한이 가진 회원이 다른 회원의 권한을 변경한다.")
     void changeAuthority() {
         //given
+        Member admin = createMember(Authority.ROLE_ADMIN);
         Member user = createMember(Authority.ROLE_USER);
 
+        memberRepository.save(admin);
         memberRepository.save(user);
 
         //when
-        memberService.changeAuthority(user.getId(), Authority.ROLE_ADMIN);
+        memberService.changeAuthority(admin.getId(), user.getId(), Authority.ROLE_ADMIN);
 
         //then
         assertThat(user.getAuthority()).isEqualTo(Authority.ROLE_ADMIN);
+    }
+
+    @Test
+    @DisplayName("admin 권한이 아닐 때 다른 회원의 권한을 변경하려면 MemberAccessDeniedException 이 발생한다.")
+    void changeAuthorityException() {
+        //given
+        Member user1 = createMember(Authority.ROLE_USER);
+        Member user2 = createMember(Authority.ROLE_USER);
+
+        memberRepository.save(user1);
+        memberRepository.save(user2);
+
+        //when & then
+        MemberAccessDeniedException exception = assertThrows(MemberAccessDeniedException.class,
+                () -> memberService.changeAuthority(user1.getId(), user2.getId(), Authority.ROLE_ADMIN));
+
+        assertThat(exception.getMessage()).isEqualTo(MemberAccessDeniedException.MESSAGE);
+        assertThat(exception.getErrorCode()).isEqualTo(MemberAccessDeniedException.CODE);
     }
 
     List<Member> createMembers(int count){
@@ -254,6 +317,7 @@ class MemberServiceTest extends ServiceTest {
                 .name("test")
                 .username("test")
                 .password(password)
+                .authority(Authority.ROLE_USER)
                 .email("test@test.com")
                 .build();
     }
