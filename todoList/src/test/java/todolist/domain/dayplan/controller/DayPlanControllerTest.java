@@ -1,12 +1,11 @@
 package todolist.domain.dayplan.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import todolist.domain.dayplan.dto.apidto.request.DayPlanCreateApiDto;
@@ -20,7 +19,6 @@ import todolist.domain.member.entity.Member;
 import todolist.global.ControllerTest;
 import todolist.global.reponse.ApiResponse;
 
-import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -299,7 +297,8 @@ class DayPlanControllerTest extends ControllerTest {
                     //then
                     actions
                             .andDo(print())
-                            .andExpect(status().isBadRequest());
+                            .andExpect(status().isBadRequest())
+                            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("날짜를 입력해주세요."));
 
                     assertThat(apiResponse.getMessage()).isEqualTo("날짜를 입력해주세요.");
 

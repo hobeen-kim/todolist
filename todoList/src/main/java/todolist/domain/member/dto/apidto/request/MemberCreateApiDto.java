@@ -1,5 +1,6 @@
 package todolist.domain.member.dto.apidto.request;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +18,7 @@ public class MemberCreateApiDto {
     private String username;
     @NotBlank(message = "{validation.member.password}")
     private String password;
+    @Email(message = "{validation.member.email}")
     @NotBlank(message = "{validation.member.email}")
     private String email;
 

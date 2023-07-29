@@ -7,8 +7,9 @@ public class AuthConstant {
     public static final String AUTHORIZATION = "Authorization";
     public static final String BEARER = "Bearer ";
     public static final String REFRESH = "Refresh";
-    public static final String LOGIN_PATH = "/v1/auth/login";
-    public static final String REFRESH_URL = "/v1/auth/refresh";
+    public static final String Auth_PATH = "/v1/api/auth";
+    public static final String LOGIN_PATH = "/v1/api/auth/login";
+    public static final String REFRESH_URL = "/v1/api/auth/refresh";
     public static final String LOCATION = "Location";
     public static final String AUTHORITIES_KEY = "auth";
     public static final String ID_KEY = "id";

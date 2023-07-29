@@ -1,7 +1,9 @@
 package todolist.domain.member.controller;
 
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.TestFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -23,8 +25,10 @@ import todolist.global.reponse.ApiResponse;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import static org.junit.jupiter.api.DynamicTest.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -320,6 +324,307 @@ class MemberControllerTest extends ControllerTest {
                         )
                 );
 
+    }
+
+    @TestFactory
+    @DisplayName("회원 가입 시 validation 검증")
+    Collection<DynamicTest> memberCreateValidation() {
+        //given
+        //mock 응답값 생성
+        Long mockMemberId = 1L;
+
+        given(memberService.saveMember(any(MemberCreateServiceDto.class)))
+                .willReturn(mockMemberId);
+
+        return List.of(
+                dynamicTest("이름이 공백일 때", () ->{
+                    //given
+                    //요청 값 생성
+                    MemberCreateApiDto dto = MemberCreateApiDto.builder()
+                            .name(" ")
+                            .username("username")
+                            .password("1234")
+                            .email("test@test.com")
+                            .build();
+
+                    String content = objectMapper.writeValueAsString(dto);
+
+                    //when
+                    ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content));
+
+                    //then
+                    actions
+                            .andDo(print())
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("이름을 입력해주세요."));
+                }),
+                dynamicTest("아이디가 공백일 때", () ->{
+                    //given
+                    //요청 값 생성
+                    MemberCreateApiDto dto = MemberCreateApiDto.builder()
+                            .name("name")
+                            .username(" ")
+                            .password("1234")
+                            .email("test@test.com")
+                            .build();
+
+                    String content = objectMapper.writeValueAsString(dto);
+
+                    //when
+                    ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content));
+
+                    //then
+                    actions
+                            .andDo(print())
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("아이디를 입력해주세요."));
+                }),
+                dynamicTest("비밀번호가 공백일 때", () ->{
+                    //given
+                    //요청 값 생성
+                    MemberCreateApiDto dto = MemberCreateApiDto.builder()
+                            .name("name")
+                            .username("username")
+                            .email("test@test.com")
+                            .build();
+
+                    String content = objectMapper.writeValueAsString(dto);
+
+                    //when
+                    ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content));
+
+                    //then
+                    actions
+                            .andDo(print())
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("비밀번호를 정확히 입력해주세요."));
+                }),
+                dynamicTest("이메일이 이메일 형식이 아닐 때", () ->{
+                    //given
+                    //요청 값 생성
+                    MemberCreateApiDto dto = MemberCreateApiDto.builder()
+                            .name("name")
+                            .username("username")
+                            .password("1234")
+                            .email("test.com")
+                            .build();
+
+                    String content = objectMapper.writeValueAsString(dto);
+
+                    //when
+                    ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content));
+
+                    //then
+                    actions
+                            .andDo(print())
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("이메일을 정확히 입력해주세요."));
+                }),
+                dynamicTest("이메일이 공백일 때", () ->{
+                    //given
+                    //요청 값 생성
+                    MemberCreateApiDto dto = MemberCreateApiDto.builder()
+                            .name("name")
+                            .username("username")
+                            .password("1234")
+                            .build();
+
+                    String content = objectMapper.writeValueAsString(dto);
+
+                    //when
+                    ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content));
+
+                    //then
+                    actions
+                            .andDo(print())
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("이메일을 정확히 입력해주세요."));
+                })
+        );
+
+    }
+
+    @TestFactory
+    @DisplayName("회원 패스워드 수정 시 validation 검증")
+    Collection<DynamicTest> updatePasswordValidation() throws Exception {
+        //given
+        //인증 값 설정
+        Long memberId = 1L;
+        setDefaultAuthentication(memberId);
+
+        //mock 응답값 생성
+        willDoNothing().given(memberService).changePassword(anyLong(), any(String.class), any(String.class));
+
+        return List.of(
+                dynamicTest("이전 비밀번호가 공백일 때", () ->{
+                    //given
+                    //요청 값 생성
+                    MemberPasswordApiDto dto = MemberPasswordApiDto.builder()
+                            .prevPassword(" ")
+                            .newPassword("12345")
+                            .build();
+
+                    String content = objectMapper.writeValueAsString(dto);
+
+                    //when
+                    ResultActions actions = mockMvc.perform(patchBuilder("/password", content)
+                            .header(AuthConstant.AUTHORIZATION, getAuthorizationToken()));
+
+                    //then
+                    actions
+                            .andDo(print())
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("비밀번호를 정확히 입력해주세요."));
+                }),
+                dynamicTest("이전 비밀번호가 null 일 때", () ->{
+                    //given
+                    //요청 값 생성
+                    MemberPasswordApiDto dto = MemberPasswordApiDto.builder()
+                            .newPassword("12345")
+                            .build();
+
+                    String content = objectMapper.writeValueAsString(dto);
+
+                    //when
+                    ResultActions actions = mockMvc.perform(patchBuilder("/password", content)
+                            .header(AuthConstant.AUTHORIZATION, getAuthorizationToken()));
+
+                    //then
+                    actions
+                            .andDo(print())
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("비밀번호를 정확히 입력해주세요."));
+                }),
+                dynamicTest("새 비밀번호가 공백일 때", () ->{
+                    //given
+                    //요청 값 생성
+                    MemberPasswordApiDto dto = MemberPasswordApiDto.builder()
+                            .prevPassword("1234")
+                            .newPassword(" ")
+                            .build();
+
+                    String content = objectMapper.writeValueAsString(dto);
+
+                    //when
+                    ResultActions actions = mockMvc.perform(patchBuilder("/password", content)
+                            .header(AuthConstant.AUTHORIZATION, getAuthorizationToken()));
+
+                    //then
+                    actions
+                            .andDo(print())
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("비밀번호를 정확히 입력해주세요."));
+                }),
+                dynamicTest("새 비밀번호가 null 일 때", () ->{
+                    //given
+                    //요청 값 생성
+                    MemberPasswordApiDto dto = MemberPasswordApiDto.builder()
+                            .prevPassword("1234")
+                            .build();
+
+                    String content = objectMapper.writeValueAsString(dto);
+
+                    //when
+                    ResultActions actions = mockMvc.perform(patchBuilder("/password", content)
+                            .header(AuthConstant.AUTHORIZATION, getAuthorizationToken()));
+
+                    //then
+                    actions
+                            .andDo(print())
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("비밀번호를 정확히 입력해주세요."));
+                })
+        );
+    }
+
+
+    @TestFactory
+    @DisplayName("회원 탈퇴 시 validation 검증")
+    Collection<DynamicTest> withdrawalValidation() {
+        //given
+        //인증 값 설정
+        Long memberId = 1L;
+        setDefaultAuthentication(memberId);
+
+        //mock 응답값 생성
+        willDoNothing().given(memberService).withdrawal(anyLong(), anyLong(), any(String.class));
+
+
+        return List.of(
+                dynamicTest("비밀번호가 공백일 때", () -> {
+                    //given
+                    //요청 값 생성
+                    MemberWithdrawalApiDto dto = MemberWithdrawalApiDto.builder()
+                            .password(" ")
+                            .build();
+
+                    String content = objectMapper.writeValueAsString(dto);
+
+                    //when
+                    ResultActions actions = mockMvc.perform(deleteBuilder("/{memberId}", content, memberId)
+                            .header(AuthConstant.AUTHORIZATION, getAuthorizationToken()));
+
+                    //then
+                    actions
+                            .andDo(print())
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("비밀번호를 정확히 입력해주세요."))
+                    ;
+                }),
+                dynamicTest("비밀번호가 null 일 때", () -> {
+                    //given
+                    //요청 값 생성
+                    MemberWithdrawalApiDto dto = MemberWithdrawalApiDto.builder()
+                            .build();
+
+                    String content = objectMapper.writeValueAsString(dto);
+
+                    //when
+                    ResultActions actions = mockMvc.perform(deleteBuilder("/{memberId}", content, memberId)
+                            .header(AuthConstant.AUTHORIZATION, getAuthorizationToken()));
+
+                    //then
+                    actions
+                            .andDo(print())
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("비밀번호를 정확히 입력해주세요."))
+                    ;
+                })
+
+            );
+
+    }
+
+    @Test
+    @DisplayName("회원 권한 수정 시 validation 검증")
+    void updateAuthorityValidation() throws Exception {
+        //given
+        //인증 값 설정 (admin)
+        Long memberId = 1L;
+        setAdminAuthentication(memberId);
+
+        //mock 응답값 생성
+        willDoNothing().given(memberService).changeAuthority(anyLong(), anyLong(), any(Authority.class));
+
+        //요청 값 생성
+        MemberAuthorityApiDto dto = MemberAuthorityApiDto.builder()
+                .build();
+
+        Long changeId = 2L;
+
+        String content = objectMapper.writeValueAsString(dto);
+
+        //when
+        ResultActions actions = mockMvc.perform(patchBuilder("/authority/{memberId}", content, changeId)
+                .header(AuthConstant.AUTHORIZATION, getAuthorizationToken()));
+
+
+        //then
+        actions
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("권한을 선택해주세요."))
+        ;
     }
 
 

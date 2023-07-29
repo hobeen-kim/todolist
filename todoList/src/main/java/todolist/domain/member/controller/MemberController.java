@@ -29,7 +29,7 @@ import java.net.URI;
 public class MemberController {
 
     private final MemberService memberService;
-    private static final String MEMBER_URL = "/v1/api/members/";
+    public static final String MEMBER_URL = "/v1/api/members";
 
     /**
      * 회원가입 기능입니다.
@@ -37,11 +37,11 @@ public class MemberController {
      * @return 생성된 회원의 id
      */
     @PostMapping
-    public ResponseEntity<Void> signUp(@RequestBody MemberCreateApiDto dto) {
+    public ResponseEntity<Void> signUp(@RequestBody @Valid MemberCreateApiDto dto) {
 
         Long savedMemberId = memberService.saveMember(dto.toServiceDto());
 
-        URI uri = URI.create(MEMBER_URL + savedMemberId);
+        URI uri = URI.create(MEMBER_URL + "/" + savedMemberId);
 
         return ResponseEntity.created(uri).build();
     }

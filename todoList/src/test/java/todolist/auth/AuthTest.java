@@ -58,7 +58,7 @@ class AuthTest implements ControllerTestHelper {
 
     @Override
     public String getUrl() {
-        return "/v1/auth";
+        return "/v1/api/auth";
     }
 
     protected RestDocumentationResultHandler documentHandler;
@@ -173,7 +173,8 @@ class AuthTest implements ControllerTestHelper {
 
         //then
         actions
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string("mock"));
     }
 
     @Test
@@ -321,6 +322,42 @@ class AuthTest implements ControllerTestHelper {
 
     }
 
+    @Test
+    @DisplayName("admin 권한이 필요한 리소스는 admin 권한만 접근 가능하다.")
+    void adminResource() throws Exception {
+        //given
+        Member member = createAdmin("admin", "1234");
+        String accessToken = createAccessToken(member, 10000L);
+
+        //when
+        ResultActions actions = mockMvc.perform(get(MOCK_AUTH_PATH + "/admin")
+                .header(AUTHORIZATION, BEARER + accessToken)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        //then
+        actions
+                .andExpect(status().isOk())
+                .andExpect(content().string("mockAdmin"));
+    }
+
+    @Test
+    @DisplayName("admin 권한이 아닐 때 admin 리소스에 접근하면 403 에러를 리턴받는다.")
+    void adminResourceException() throws Exception {
+        //given
+        Member member = createMember("admin", "1234");
+        String accessToken = createAccessToken(member, 10000L);
+
+        //when
+        ResultActions actions = mockMvc.perform(get(MOCK_AUTH_PATH + "/admin")
+                .header(AUTHORIZATION, BEARER + accessToken)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        //then
+        actions
+                .andExpect(status().isForbidden())
+        ;
+    }
+
 
     private String createAccessToken(Member member, long accessTokenExpireTime) {
         UserDetails userDetails = createUserDetails(member);
@@ -347,6 +384,20 @@ class AuthTest implements ControllerTestHelper {
                 .username(username)
                 .password(passwordEncoder.encode(password))
                 .authority(Authority.ROLE_USER)
+                .build();
+
+        em.persist(member);
+
+        return member;
+    }
+
+    private Member createAdmin(String username, String password) {
+
+        Member member = Member.builder()
+                .name("test")
+                .username(username)
+                .password(passwordEncoder.encode(password))
+                .authority(Authority.ROLE_ADMIN)
                 .build();
 
         em.persist(member);

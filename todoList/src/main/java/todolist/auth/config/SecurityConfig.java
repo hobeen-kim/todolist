@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -18,17 +19,17 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import todolist.auth.Filter.JwtAuthenticationFilter;
 import todolist.auth.Filter.JwtRefreshFilter;
 import todolist.auth.Filter.JwtVerificationFilter;
-import todolist.auth.handler.MemberAccessDeniedHandler;
-import todolist.auth.handler.MemberAuthenticationEntryPoint;
-import todolist.auth.handler.MemberAuthenticationFailureHandler;
-import todolist.auth.handler.MemberAuthenticationSuccessHandler;
+import todolist.auth.handler.*;
 import todolist.auth.service.TokenProvider;
+import todolist.domain.member.controller.MemberController;
 
+import static todolist.auth.utils.AuthConstant.Auth_PATH;
 import static todolist.auth.utils.AuthConstant.LOGIN_PATH;
 
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final TokenProvider tokenProvider;
@@ -54,7 +55,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                         authorizeRequests -> authorizeRequests
                                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-                                .requestMatchers("/v1/auth/login").permitAll()
+                                .requestMatchers(Auth_PATH + "/**").permitAll()
+                                .requestMatchers(MemberController.MEMBER_URL + "authority/**").hasRole("ADMIN")
                                 .anyRequest().authenticated())
                 .apply(new CustomFilterConfigurer())
                 ;
@@ -86,7 +88,7 @@ public class SecurityConfig {
             jwtAuthenticationFilter.setAuthenticationSuccessHandler(new MemberAuthenticationSuccessHandler());
             jwtAuthenticationFilter.setAuthenticationFailureHandler(new MemberAuthenticationFailureHandler());
 
-            JwtRefreshFilter jwtRefreshFilter = new JwtRefreshFilter(tokenProvider);
+            JwtRefreshFilter jwtRefreshFilter = new JwtRefreshFilter(tokenProvider, new MemberRefreshFailureHandler());
             JwtVerificationFilter jwtVerificationFilter = new JwtVerificationFilter(tokenProvider);
 
             builder

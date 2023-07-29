@@ -5,7 +5,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.web.filter.OncePerRequestFilter;
+import todolist.auth.handler.MemberRefreshFailureHandler;
 import todolist.auth.utils.AuthUtil;
 import todolist.auth.service.TokenProvider;
 import todolist.global.exception.buinessexception.BusinessException;
@@ -21,13 +23,14 @@ import static todolist.auth.utils.AuthConstant.*;
 public class JwtRefreshFilter extends OncePerRequestFilter {
 
     private final TokenProvider tokenProvider;
+    private final MemberRefreshFailureHandler refreshFailureHandler;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         //POST 방식이 아니면 refresh 페이지를 포함해서 다시 예외를 던진다.
         if(!request.getMethod().equals("POST")){
-            request.setAttribute(BUSINESS_EXCEPTION, new RequestNotAllowedException());
+            this.refreshFailureHandler.onAuthenticationFailure(request, response, new RequestNotAllowedException());
         }
         else{
             try {
@@ -41,21 +44,11 @@ public class JwtRefreshFilter extends OncePerRequestFilter {
 
                 response.setHeader(AUTHORIZATION, BEARER + regeneratedAccessToken);
 
-                return;
-            }catch(AuthException exception){
-                //refreshToken 도 만료되거나 잘못되어있으면 로그인 페이지를 location 으로 으답한다.
-                response.setHeader("Allow", "POST");
-                response.setHeader(LOCATION, request.getScheme() + "://" + request.getServerName() +  LOGIN_PATH);
-                AuthUtil.sendErrorResponse(response, exception);
-                return;
-            }catch(BusinessException exception){
-                request.setAttribute(BUSINESS_EXCEPTION, exception);
+            //모든 예외는 이곳에서 처리된다.
             }catch(Exception exception){
-                request.setAttribute(EXCEPTION, exception);
+                this.refreshFailureHandler.onAuthenticationFailure(request, response, exception);
             }
         }
-
-        filterChain.doFilter(request, response);
     }
 
     @Override

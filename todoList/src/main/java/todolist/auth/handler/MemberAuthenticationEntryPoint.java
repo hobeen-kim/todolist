@@ -26,7 +26,7 @@ public class MemberAuthenticationEntryPoint implements AuthenticationEntryPoint 
         if(businessException != null){
             AuthUtil.sendErrorResponse(response, businessException);
 
-            if(businessException instanceof JwtExpiredAuthException || businessException instanceof RequestNotAllowedException){
+            if(businessException instanceof JwtExpiredAuthException){
                 response.setHeader("Allow", "POST");
                 response.setHeader(LOCATION,
                         request.getScheme() + "://" + request.getServerName() +  REFRESH_URL);
