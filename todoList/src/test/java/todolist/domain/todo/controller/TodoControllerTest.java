@@ -42,8 +42,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static todolist.auth.utils.AuthConstant.AUTHORIZATION;
 
 class TodoControllerTest extends ControllerTest {
@@ -273,15 +272,11 @@ class TodoControllerTest extends ControllerTest {
                     ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content)
                             .header(AUTHORIZATION, getAuthorizationToken()));
 
-                    //응답값
-                    ApiResponse<Void> apiResponse = getApiResponseFromResult(actions, Void.class);
-
                     //then
                     actions
                             .andDo(print())
-                            .andExpect(status().isBadRequest());
-
-                    assertThat(apiResponse.getMessage()).isEqualTo("내용을 입력해주세요.");
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("내용을 입력해주세요."));
                 }),
                 dynamicTest("importance 가 null 일 때 예외가 발생한다.", () ->{
                     //given
@@ -299,16 +294,11 @@ class TodoControllerTest extends ControllerTest {
                     ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content)
                             .header(AUTHORIZATION, getAuthorizationToken()));
 
-                    //응답값
-                    ApiResponse<Void> apiResponse = getApiResponseFromResult(actions, Void.class);
-
                     //then
                     actions
                             .andDo(print())
-                            .andExpect(status().isBadRequest());
-
-                    assertThat(apiResponse.getMessage()).isEqualTo("중요도를 입력해주세요.");
-
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("중요도를 입력해주세요."));
                 }),
                 dynamicTest("startDate 가 null 일 때 예외가 발생한다.", () ->{
                     //given
@@ -326,16 +316,11 @@ class TodoControllerTest extends ControllerTest {
                     ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content)
                             .header(AUTHORIZATION, getAuthorizationToken()));
 
-                    //응답값
-                    ApiResponse<Void> apiResponse = getApiResponseFromResult(actions, Void.class);
-
                     //then
                     actions
                             .andDo(print())
-                            .andExpect(status().isBadRequest());
-
-                    assertThat(apiResponse.getMessage()).isEqualTo("날짜를 입력해주세요.");
-
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("날짜를 입력해주세요."));
                 }),
                 dynamicTest("deadLine 이 null 일 때 예외가 발생한다.", () ->{
                     //given
@@ -353,15 +338,11 @@ class TodoControllerTest extends ControllerTest {
                     ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content)
                             .header(AUTHORIZATION, getAuthorizationToken()));
 
-                    //응답값
-                    ApiResponse<Void> apiResponse = getApiResponseFromResult(actions, Void.class);
-
                     //then
                     actions
                             .andDo(print())
-                            .andExpect(status().isBadRequest());
-
-                    assertThat(apiResponse.getMessage()).isEqualTo("날짜를 입력해주세요.");
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("날짜를 입력해주세요."));
                 })
         );
     }
@@ -390,18 +371,12 @@ class TodoControllerTest extends ControllerTest {
         ResultActions actions = mockMvc.perform(getBuilder(withDefaultUrl(), params)
                 .header(AuthConstant.AUTHORIZATION, getAuthorizationToken()));
 
-        //응답값
-        ApiResponse<Void> apiResponse = getApiResponseFromResult(actions, Void.class);
-
-
         //then
         actions
                 .andDo(print())
                 .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("검색조건을 선택해주세요."))
         ;
-
-        assertThat(apiResponse.getMessage()).isEqualTo("검색조건을 선택해주세요.");
-
     }
 
     List<TodoResponseServiceDto> createTodoResponseServiceDtos(LocalDate startDate, int count){

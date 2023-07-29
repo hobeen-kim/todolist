@@ -36,6 +36,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static todolist.auth.utils.AuthConstant.AUTHORIZATION;
@@ -265,15 +266,11 @@ class DayPlanControllerTest extends ControllerTest {
                     ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content)
                             .header(AUTHORIZATION, getAuthorizationToken()));
 
-                    //응답값
-                    ApiResponse<Void> apiResponse = getApiResponseFromResult(actions, Void.class);
-
                     //then
                     actions
                             .andDo(print())
-                            .andExpect(status().isBadRequest());
-
-                    assertThat(apiResponse.getMessage()).isEqualTo("내용을 입력해주세요.");
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("내용을 입력해주세요."));
                 }),
                 dynamicTest("date 가 null 일 때", () ->{
                     //given
@@ -291,17 +288,11 @@ class DayPlanControllerTest extends ControllerTest {
                     ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content)
                             .header(AUTHORIZATION, getAuthorizationToken()));
 
-                    //응답값
-                    ApiResponse<Void> apiResponse = getApiResponseFromResult(actions, Void.class);
-
                     //then
                     actions
                             .andDo(print())
                             .andExpect(status().isBadRequest())
-                            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("날짜를 입력해주세요."));
-
-                    assertThat(apiResponse.getMessage()).isEqualTo("날짜를 입력해주세요.");
-
+                            .andExpect(jsonPath("$.message").value("날짜를 입력해주세요."));
                 }),
                 dynamicTest("startTime 이 null 일 때", () ->{
                     //given
@@ -319,16 +310,11 @@ class DayPlanControllerTest extends ControllerTest {
                     ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content)
                             .header(AUTHORIZATION, getAuthorizationToken()));
 
-                    //응답값
-                    ApiResponse<Void> apiResponse = getApiResponseFromResult(actions, Void.class);
-
                     //then
                     actions
                             .andDo(print())
-                            .andExpect(status().isBadRequest());
-
-                    assertThat(apiResponse.getMessage()).isEqualTo("시간을 입력해주세요.");
-
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("시간을 입력해주세요."));
                 }),
                 dynamicTest("endTime 이 null 일 때", () ->{
                     //given
@@ -346,53 +332,13 @@ class DayPlanControllerTest extends ControllerTest {
                     ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content)
                             .header(AUTHORIZATION, getAuthorizationToken()));
 
-                    //응답값
-                    ApiResponse<DayPlanListResponseApiDto> apiResponse = getApiResponseFromResult(actions, DayPlanListResponseApiDto.class);
-
                     //then
                     actions
                             .andDo(print())
-                            .andExpect(status().isBadRequest());
-
-                    assertThat(apiResponse.getMessage()).isEqualTo("시간을 입력해주세요.");
-
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.message").value("시간을 입력해주세요."));
                 })
         );
-    }
-
-
-    List<DayPlan> createDayPlans(LocalDate startDate, int count){
-        List<DayPlan> dayPlans = new ArrayList<>();
-
-        for (int i = 0; i < count; i++) {
-            DayPlan dayPlan = createDayPlan(startDate.plusDays(i));
-            dayPlans.add(dayPlan);
-        }
-        return dayPlans;
-    }
-
-    DayPlan createDayPlanDefault(){
-        return DayPlan.builder()
-                .content("test")
-                .date(LocalDate.of(2023, 7, 20))
-                .startTime(LocalTime.of(12, 0, 0))
-                .endTime(LocalTime.of(12, 20, 0))
-                .build();
-    }
-
-    DayPlan createDayPlan(LocalDate date){
-        return DayPlan.builder()
-                .content("test")
-                .date(date)
-                .startTime(LocalTime.of(10, 0, 0))
-                .endTime(LocalTime.of(11, 0, 0))
-                .build();
-    }
-
-    void addDayPlans(Member member, List<DayPlan> dayPlans){
-        for (DayPlan dayPlan : dayPlans) {
-            member.addDayPlans(dayPlan);
-        }
     }
 
     List<DayPlanResponseServiceDto> createDayPlanResponseServiceDtos(LocalDate startDate, int count){
