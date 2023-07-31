@@ -1,6 +1,5 @@
 package todolist.domain.dayplan.repository;
 
-import org.assertj.core.api.Assertions;
 import org.hibernate.Hibernate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
@@ -10,8 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import todolist.domain.dayplan.entity.DayPlan;
 import todolist.domain.dayplan.repository.searchCond.DateSearchCond;
 import todolist.domain.member.entity.Member;
-import todolist.domain.todo.entity.Todo;
-import todolist.global.RepositoryTest;
+import todolist.global.testHelper.RepositoryTest;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -20,7 +18,6 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.*;
 
 class DayPlanRepositoryTest extends RepositoryTest {

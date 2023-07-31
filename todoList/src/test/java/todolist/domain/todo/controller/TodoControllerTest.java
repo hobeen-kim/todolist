@@ -7,12 +7,8 @@ import org.junit.jupiter.api.TestFactory;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import todolist.auth.service.TokenProvider;
 import todolist.auth.utils.AuthConstant;
-import todolist.domain.dayplan.dto.apidto.request.DayPlanCreateApiDto;
-import todolist.domain.dayplan.dto.apidto.response.DayPlanListResponseApiDto;
-import todolist.domain.dayplan.dto.servicedto.DayPlanCreateServiceDto;
-import todolist.domain.dayplan.dto.servicedto.DayPlanResponseServiceDto;
+import todolist.domain.member.entity.Authority;
 import todolist.domain.todo.dto.apidto.request.TodoCreateApiDto;
 import todolist.domain.todo.dto.apidto.request.TodoUpdateApiDto;
 import todolist.domain.todo.dto.apidto.response.TodoListResponseApiDto;
@@ -21,11 +17,10 @@ import todolist.domain.todo.dto.servicedto.TodoResponseServiceDto;
 import todolist.domain.todo.dto.servicedto.TodoUpdateServiceDto;
 import todolist.domain.todo.entity.Importance;
 import todolist.domain.todo.repository.searchCond.SearchType;
-import todolist.global.ControllerTest;
+import todolist.global.testHelper.ControllerTest;
 import todolist.global.reponse.ApiResponse;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -99,12 +94,12 @@ class TodoControllerTest extends ControllerTest {
                         queryParameters(
                                 parameterWithName("from").description("검색 시작 날짜"),
                                 parameterWithName("to").description("검색 종료 날짜"),
-                                parameterWithName("searchType").description("검색 타입")
+                                parameterWithName("searchType").description(generateLinkCode(SearchType.class))
                         ),
                         getListResponseFields(
                                 fieldWithPath("data.todos").type(ARRAY).description("todo 목록"),
                                 fieldWithPath("data.todos[].id").type(NUMBER).description("todo id"),
-                                fieldWithPath("data.todos[].importance").type(STRING).description("todo 중요도"),
+                                fieldWithPath("data.todos[].importance").type(STRING).description(generateLinkCode(Importance.class)),
                                 fieldWithPath("data.todos[].content").type(STRING).description("todo 내용"),
                                 fieldWithPath("data.todos[].startDate").type(STRING).description("todo 시작 예정일"),
                                 fieldWithPath("data.todos[].deadLine").type(STRING).description("todo 마감 예정일"),
@@ -147,14 +142,20 @@ class TodoControllerTest extends ControllerTest {
         ;
 
         //restDocs
+        setConstraintClass(TodoCreateApiDto.class);
+
         actions
                 .andDo(documentHandler.document(
                         getTokenRequestHeader(),
                         requestFields(
-                                fieldWithPath("content").type(STRING).description("todo 내용"),
-                                fieldWithPath("importance").type(STRING).description("todo 중요도"),
-                                fieldWithPath("startDate").type(STRING).description("todo 시작 예정일"),
+                                fieldWithPath("content").type(STRING).description("todo 내용")
+                                        .attributes(getConstraint("content")),
+                                fieldWithPath("importance").type(STRING).description(generateLinkCode(Importance.class))
+                                        .attributes(getConstraint("importance")),
+                                fieldWithPath("startDate").type(STRING).description("todo 시작 예정일")
+                                        .attributes(getConstraint("startDate")),
                                 fieldWithPath("deadLine").type(STRING).description("todo 마감 예정일")
+                                        .attributes(getConstraint("deadLine"))
                         )
                 ));
     }
@@ -193,6 +194,8 @@ class TodoControllerTest extends ControllerTest {
         ;
 
         //restDocs
+        setConstraintClass(TodoUpdateApiDto.class);
+
         actions
                 .andDo(documentHandler.document(
                         getTokenRequestHeader(),
@@ -200,11 +203,16 @@ class TodoControllerTest extends ControllerTest {
                                 parameterWithName("todoId").description("수정할 todo id")
                         ),
                         requestFields(
-                                fieldWithPath("content").type(STRING).description("todo 내용"),
-                                fieldWithPath("importance").type(STRING).description("todo 중요도"),
-                                fieldWithPath("startDate").type(STRING).description("todo 시작 예정일"),
-                                fieldWithPath("deadLine").type(STRING).description("todo 마감 예정일"),
-                                fieldWithPath("doneDate").type(STRING).description("todo 완료일")
+                                fieldWithPath("content").type(STRING).description("todo 내용").optional()
+                                        .attributes(getConstraint("content")),
+                                fieldWithPath("importance").type(STRING).description(generateLinkCode(Importance.class)).optional()
+                                        .attributes(getConstraint("importance")),
+                                fieldWithPath("startDate").type(STRING).description("todo 시작 예정일").optional()
+                                        .attributes(getConstraint("startDate")),
+                                fieldWithPath("deadLine").type(STRING).description("todo 마감 예정일").optional()
+                                        .attributes(getConstraint("deadLine")),
+                                fieldWithPath("doneDate").type(STRING).description("todo 완료일").optional()
+                                        .attributes(getConstraint("doneDate"))
                         )
                 ));
 
@@ -276,7 +284,29 @@ class TodoControllerTest extends ControllerTest {
                     actions
                             .andDo(print())
                             .andExpect(status().isBadRequest())
-                            .andExpect(jsonPath("$.message").value("내용을 입력해주세요."));
+                            .andExpect(jsonPath("$.data[0].reason").value("내용을 입력해주세요."));
+                }),
+                dynamicTest("content 가 100글자가 넘을 때 예외가 발생한다.", () ->{
+                    //given
+                    //생성 api request dto
+                    TodoCreateApiDto dto = TodoCreateApiDto.builder()
+                            .content("a".repeat(101))
+                            .importance(Importance.BLUE)
+                            .startDate(LocalDate.of(2023, 3, 1))
+                            .deadLine(LocalDate.of(2023, 3, 10))
+                            .build();
+
+                    String content = objectMapper.writeValueAsString(dto);
+
+                    //when
+                    ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content)
+                            .header(AUTHORIZATION, getAuthorizationToken()));
+
+                    //then
+                    actions
+                            .andDo(print())
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.data[0].reason").value("가능한 길이는 1 ~ 100자 입니다."));
                 }),
                 dynamicTest("importance 가 null 일 때 예외가 발생한다.", () ->{
                     //given
@@ -298,7 +328,7 @@ class TodoControllerTest extends ControllerTest {
                     actions
                             .andDo(print())
                             .andExpect(status().isBadRequest())
-                            .andExpect(jsonPath("$.message").value("중요도를 입력해주세요."));
+                            .andExpect(jsonPath("$.data[0].reason").value("중요도를 입력해주세요."));
                 }),
                 dynamicTest("startDate 가 null 일 때 예외가 발생한다.", () ->{
                     //given
@@ -320,7 +350,7 @@ class TodoControllerTest extends ControllerTest {
                     actions
                             .andDo(print())
                             .andExpect(status().isBadRequest())
-                            .andExpect(jsonPath("$.message").value("날짜를 입력해주세요."));
+                            .andExpect(jsonPath("$.data[0].reason").value("날짜를 입력해주세요."));
                 }),
                 dynamicTest("deadLine 이 null 일 때 예외가 발생한다.", () ->{
                     //given
@@ -342,7 +372,7 @@ class TodoControllerTest extends ControllerTest {
                     actions
                             .andDo(print())
                             .andExpect(status().isBadRequest())
-                            .andExpect(jsonPath("$.message").value("날짜를 입력해주세요."));
+                            .andExpect(jsonPath("$.data[0].reason").value("날짜를 입력해주세요."));
                 })
         );
     }
@@ -375,8 +405,42 @@ class TodoControllerTest extends ControllerTest {
         actions
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("검색조건을 선택해주세요."))
+                .andExpect(jsonPath("$.data[0].reason").value("검색조건을 선택해주세요."))
         ;
+    }
+
+    @Test
+    @DisplayName("todo 수정 시 validation 검증 - content 가 100글자가 넘을 때 예외가 발생한다.")
+    void updateTodoValidation() throws Exception{
+
+        //given
+        //수정 api request dto
+        TodoUpdateApiDto dto = TodoUpdateApiDto.builder()
+                .content("a".repeat(101))
+                .importance(Importance.BLUE)
+                .startDate(LocalDate.of(2023, 3, 1))
+                .deadLine(LocalDate.of(2023, 3, 10))
+                .doneDate(LocalDate.of(2023, 3, 5))
+                .build();
+
+        String content = objectMapper.writeValueAsString(dto);
+
+        //인증값 설정
+        long memberId = 1L;
+        setDefaultAuthentication(memberId);
+
+        //mock 데이터 생성
+        willDoNothing().given(todoService).updateTodo(anyLong(), any(TodoUpdateServiceDto.class));
+
+        //when
+        ResultActions actions = mockMvc.perform(patchBuilder("/{todoId}", content, 1L)
+                .header(AuthConstant.AUTHORIZATION, getAuthorizationToken()));
+
+        //then
+        actions
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data[0].reason").value("가능한 길이는 1 ~ 100자 입니다."));
     }
 
     List<TodoResponseServiceDto> createTodoResponseServiceDtos(LocalDate startDate, int count){

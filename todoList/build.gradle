@@ -34,6 +34,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     //spring security
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    //spring security test
+    implementation 'org.springframework.security:spring-security-test'
+    //junit
     testImplementation 'junit:junit:4.13.1'
     //롬복
     compileOnly 'org.projectlombok:lombok'
@@ -58,6 +61,9 @@ dependencies {
 
     //p6spy
     implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
+
+    //reflections
+    implementation 'org.reflections:reflections:0.9.12'
 
     //jwt
     implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.2'

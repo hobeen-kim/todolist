@@ -1,20 +1,17 @@
 package todolist.domain.todo.repository;
 
-import jakarta.persistence.EntityManager;
 import org.hibernate.Hibernate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.Commit;
-import org.springframework.test.annotation.Rollback;
 import todolist.domain.member.entity.Member;
 import todolist.domain.todo.entity.Importance;
 import todolist.domain.todo.entity.Todo;
 import todolist.domain.todo.repository.searchCond.DateTypeSearchCond;
 import todolist.domain.todo.repository.searchCond.SearchType;
-import todolist.global.RepositoryTest;
+import todolist.global.testHelper.RepositoryTest;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

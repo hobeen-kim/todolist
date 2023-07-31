@@ -27,3 +27,17 @@ custom:
     validation:
         content:
             not-blank: "내용을 입력해주세요."
+
+---
+spring:
+    profiles:
+        active: test
+
+# test h2 db
+    datasource:
+        url: jdbc:h2:mem:testdb
+        username: sa
+        password:
+    jpa:
+        hibernate:
+            ddl-auto: create

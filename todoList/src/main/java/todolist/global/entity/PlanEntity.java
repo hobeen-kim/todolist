@@ -2,6 +2,7 @@ package todolist.global.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import todolist.domain.category.entity.Category;
 import todolist.domain.member.entity.Member;
 import todolist.domain.todo.entity.Importance;
 
@@ -21,6 +22,10 @@ public abstract class PlanEntity extends BaseEntity{
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "member_id")
     protected Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    protected Category category;
 
     /**
      * Todo와 Member의 연관관계를 설정한다. member 에서 Todo 를 추가하도록 한다.

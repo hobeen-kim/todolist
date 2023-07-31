@@ -1,5 +1,6 @@
 package todolist.domain.todo.dto.apidto.request;
 
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 @Builder
 public class TodoUpdateApiDto {
 
+    @Size(min = 1, max = 100, message = "{validation.size}")
     private String content;
     private Importance importance;
     private LocalDate startDate;

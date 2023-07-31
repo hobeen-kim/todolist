@@ -69,7 +69,7 @@ public class TodoController {
     }
 
     @PatchMapping("/{todoId}")
-    public ResponseEntity<Void> updateTodo(@RequestBody TodoUpdateApiDto dto, @PathVariable Long todoId){
+    public ResponseEntity<Void> updateTodo(@RequestBody @Valid TodoUpdateApiDto dto, @PathVariable Long todoId){
 
         Long memberId = SecurityUtil.getCurrentId();
 

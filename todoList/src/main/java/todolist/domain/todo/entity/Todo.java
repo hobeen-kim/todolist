@@ -5,7 +5,10 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import todolist.domain.category.entity.Category;
 import todolist.domain.dayplan.entity.DayPlan;
+import todolist.domain.member.entity.Member;
+import todolist.domain.toplist.entity.TopList;
 import todolist.global.entity.PlanEntity;
 import todolist.global.exception.buinessexception.planexception.PlanDateValidException;
 
@@ -33,6 +36,10 @@ public class Todo extends PlanEntity {
 
     private LocalDate doneDate;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "top_list_id")
+    private TopList topList;
+
     @OneToMany(mappedBy = "todo", cascade = CascadeType.REMOVE)
     private List<DayPlan> dayPlans = new ArrayList<>();
 
@@ -44,7 +51,9 @@ public class Todo extends PlanEntity {
     }
 
     @Builder
-    private Todo(String content, Importance importance, LocalDate startDate, LocalDate deadLine, LocalDate doneDate) {
+    private Todo(Member member, Category category, String content, Importance importance, LocalDate startDate, LocalDate deadLine, LocalDate doneDate) {
+        this.member = member;
+        this.category = category;
         this.content = content;
         this.importance = importance;
         this.startDate = startDate;

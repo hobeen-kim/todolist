@@ -1,0 +1,84 @@
+= 회원 관리 API
+
+== 회원 가입
+=== HTTP Request
+include::{snippets}/member/signup/http-request.adoc[]
+==== Request Body
+include::{snippets}/member/signup/request-body.adoc[]
+==== Request Fields
+include::{snippets}/member/signup/request-fields.adoc[]
+=== HTTP Response
+include::{snippets}/member/signup/http-response.adoc[]
+==== Response Header
+include::{snippets}/member/signup/response-headers.adoc[]
+
+== 회원 정보 조회
+=== HTTP Request
+include::{snippets}/member/getmember/http-request.adoc[]
+==== Request Header
+include::{snippets}/member/getmember/request-headers.adoc[]
+=== HTTP Response
+include::{snippets}/member/getmember/http-response.adoc[]
+==== Response Body
+include::{snippets}/member/getmember/response-body.adoc[]
+==== Response Fields
+include::{snippets}/member/getmember/response-fields.adoc[]
+
+
+== 회원 정보 리스트 조회 (admin 전용)
+=== HTTP Request
+include::{snippets}/member/getmemberlist/http-request.adoc[]
+==== Request Header
+include::{snippets}/member/getmemberlist/request-headers.adoc[]
+==== Request Query Parameter
+include::{snippets}/member/getmemberlist/query-parameters.adoc[]
+
+=== HTTP Response
+include::{snippets}/member/getmemberlist/http-response.adoc[]
+==== Response Body
+include::{snippets}/member/getmemberlist/response-body.adoc[]
+==== Response Fields
+include::{snippets}/member/getmemberlist/response-fields.adoc[]
+
+== 회원 권한 정보 수정 (admin 전용)
+=== HTTP Request
+include::{snippets}/member/updateauthority/http-request.adoc[]
+==== Request Header
+include::{snippets}/member/updateauthority/request-headers.adoc[]
+==== Request Path Parameter
+include::{snippets}/member/updateauthority/path-parameters.adoc[]
+==== Request Body
+include::{snippets}/member/updateauthority/request-body.adoc[]
+==== Request Fields
+include::{snippets}/member/updateauthority/request-fields.adoc[]
+=== HTTP Response
+include::{snippets}/member/updateauthority/http-response.adoc[]
+
+== 비밀번호 수정
+=== HTTP Request
+include::{snippets}/member/updatepassword/http-request.adoc[]
+==== Request Header
+include::{snippets}/member/updatepassword/request-headers.adoc[]
+==== Request Body
+include::{snippets}/member/updatepassword/request-body.adoc[]
+==== Request Fields
+include::{snippets}/member/updatepassword/request-fields.adoc[]
+=== HTTP Response
+include::{snippets}/member/updateauthority/http-response.adoc[]
+
+== 회원 탈퇴
+IMPORTANT: 회원 탈퇴는 본인이 탈퇴하거나 관리자가 다른 회원을 탈퇴시킬 수 있습니다.
+
+=== HTTP Request
+include::{snippets}/member/withdrawal/http-request.adoc[]
+==== Request Header
+include::{snippets}/member/withdrawal/request-headers.adoc[]
+==== Request Path Parameter
+include::{snippets}/member/withdrawal/path-parameters.adoc[]
+==== Request Body
+include::{snippets}/member/withdrawal/request-body.adoc[]
+==== Request Fields
+include::{snippets}/member/withdrawal/request-fields.adoc[]
+=== HTTP Response
+include::{snippets}/member/withdrawal/http-response.adoc[]
+

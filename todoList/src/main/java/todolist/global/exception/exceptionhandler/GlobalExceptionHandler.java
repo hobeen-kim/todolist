@@ -5,38 +5,35 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import todolist.global.exception.buinessexception.BusinessException;
 import todolist.global.exception.buinessexception.memberexception.MemberAccessDeniedException;
 import todolist.global.reponse.ApiResponse;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMethodArgumentNotValidException(
+    public ResponseEntity<ApiResponse<List<ApiResponse.ErrorResponse>>> handleMethodArgumentNotValidException(
             MethodArgumentNotValidException e) {
 
-        //첫 번째 에러 메시지만 가져옴
-        String message = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
-
-        return new ResponseEntity<>(
-                ApiResponse.of(null, HttpStatus.BAD_REQUEST, message),
-                HttpStatusCode.valueOf(400));
+        return ResponseEntity.badRequest().body(ApiResponse.fail(e));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiResponse<Void>> handleConstraintViolationException(
+    public ResponseEntity<ApiResponse<List<ApiResponse.ErrorResponse>>> handleConstraintViolationException(
             ConstraintViolationException e) {
 
-        //첫 번째 에러 메시지만 가져옴
-        String message = e.getConstraintViolations().iterator().next().getMessage();
-
-        return new ResponseEntity<>(
-                ApiResponse.of(null, HttpStatus.BAD_REQUEST, message),
-                HttpStatusCode.valueOf(400));
+        return ResponseEntity.badRequest().body(ApiResponse.fail(e));
     }
 
     //메서드 인가 검증 실패 시 호출하는 메서드 (403)
@@ -46,6 +43,12 @@ public class GlobalExceptionHandler {
         ApiResponse.fail(new MemberAccessDeniedException());
 
         return new ResponseEntity<>(ApiResponse.fail(new MemberAccessDeniedException()), HttpStatusCode.valueOf(403));
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ApiResponse<BindingResult>> handleBusinessException(BusinessException e) {
+
+        return new ResponseEntity<>(ApiResponse.fail(e), e.getHttpStatus());
     }
 
     @ExceptionHandler(Exception.class)

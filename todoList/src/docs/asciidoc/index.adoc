@@ -3,9 +3,17 @@
 :icons: font
 :source-highlighter: highlightjs
 :toc: left
-:toclevels: 3
+:toclevels: 2
 :sectlinks:
+:docinfo: shared-head
 
-include::post/post.adoc[]
+include::common/overview.adoc[]
 
-include::post/comment.adoc[]
+include::snippets/auth.adoc[]
+
+include::snippets/member.adoc[]
+
+include::snippets/todo.adoc[]
+
+include::snippets/dayplan.adoc[]
+

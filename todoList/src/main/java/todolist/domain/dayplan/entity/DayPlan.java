@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import todolist.domain.category.entity.Category;
+import todolist.domain.member.entity.Member;
 import todolist.domain.todo.entity.Todo;
 import todolist.global.entity.PlanEntity;
 import todolist.global.exception.buinessexception.planexception.PlanTimeValidException;
@@ -32,6 +34,15 @@ public class DayPlan extends PlanEntity {
     private Todo todo;
 
     @Builder
+    private DayPlan(Member member, Category category, String content, LocalDate date, LocalTime startTime, LocalTime endTime) {
+        this.member = member;
+        this.category = category;
+        this.content = content;
+        this.date = date;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
     private DayPlan(String content, LocalDate date, LocalTime startTime, LocalTime endTime) {
         this.content = content;
         this.date = date;
@@ -53,7 +64,11 @@ public class DayPlan extends PlanEntity {
     public void removeTodo(){
         this.todo.removeDayPlan(this);
         this.todo = null;
+    }
 
+    public void addCategory(Category category){
+        this.category = category;
+        category.addDayPlan(this);
     }
 
 

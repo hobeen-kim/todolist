@@ -10,7 +10,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.RestDocumentationExtension;
-import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
 import org.springframework.restdocs.snippet.Attributes;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -25,20 +24,24 @@ import todolist.auth.service.CustomUserDetails;
 import todolist.auth.service.TokenProvider;
 import todolist.domain.member.entity.Authority;
 import todolist.domain.member.entity.Member;
-import todolist.global.ControllerTestHelper;
+import todolist.global.testHelper.ControllerTestHelper;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
+import static org.springframework.restdocs.http.HttpDocumentation.httpRequest;
+import static org.springframework.restdocs.http.HttpDocumentation.httpResponse;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static todolist.auth.utils.AuthConstant.*;
 
@@ -50,7 +53,7 @@ import static todolist.auth.utils.AuthConstant.*;
 class AuthTest implements ControllerTestHelper {
     public static final String PATH_PREFIX = "http://localhost";
 
-    public static final String MOCK_AUTH_PATH = "/mock";
+    public static final String MOCK_AUTH_PATH = "/common";
     @Autowired private MockMvc mockMvc;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private EntityManager em;
@@ -59,20 +62,6 @@ class AuthTest implements ControllerTestHelper {
     @Override
     public String getUrl() {
         return "/v1/api/auth";
-    }
-
-    protected RestDocumentationResultHandler documentHandler;
-
-    @BeforeEach
-    void setUp(TestInfo testInfo) {
-
-        String methodName = testInfo.getTestMethod().orElseThrow().getName().toLowerCase();
-
-        documentHandler = document(
-                "auth/" + methodName,
-                preprocessRequest(prettyPrint()),
-                preprocessResponse(prettyPrint())
-        );
     }
 
     @Test
@@ -90,22 +79,26 @@ class AuthTest implements ControllerTestHelper {
 
         //then
         actions
+                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().exists(AUTHORIZATION))
                 .andExpect(header().exists(REFRESH));
 
         //restDocs
         actions.andDo(
-                documentHandler.document(
-                requestFields(
-                        fieldWithPath("username").description("로그인할 아이디"),
-                        fieldWithPath("password").description("로그인할 비밀번호")
-                ),
-                responseHeaders(
-                        headerWithName(AUTHORIZATION).description("accessToken").attributes(getFormat("Bearer ABC.ABC.ABC")),
-                        headerWithName(REFRESH).description("refreshToken").attributes(getFormat("ABC.ABC.ABC"))
+                document("auth/login",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        requestFields(
+                                fieldWithPath("username").description("로그인할 아이디"),
+                                fieldWithPath("password").description("로그인할 비밀번호")
+                        ),
+                        responseHeaders(
+                                headerWithName(AUTHORIZATION).description("accessToken").attributes(getFormat("Bearer ABC.ABC.ABC")),
+                                headerWithName(REFRESH).description("refreshToken").attributes(getFormat("ABC.ABC.ABC"))
+                        )
                 )
-        ));
+        );
     }
 
 
@@ -214,12 +207,15 @@ class AuthTest implements ControllerTestHelper {
 
         //then
         actions
+                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().exists(AUTHORIZATION));
 
         //restdocs
         actions.andDo(
-                documentHandler.document(
+                document("auth/refresh",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
                         requestHeaders(
                                 headerWithName(REFRESH).description("refreshToken").attributes(getFormat("ABC.ABC.ABC"))
                         ),

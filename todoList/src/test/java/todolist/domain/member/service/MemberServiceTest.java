@@ -13,7 +13,7 @@ import todolist.domain.member.entity.Authority;
 import todolist.domain.member.entity.Member;
 import todolist.domain.member.repository.MemberRepository;
 import todolist.domain.todo.entity.Todo;
-import todolist.global.ServiceTest;
+import todolist.global.testHelper.ServiceTest;
 import todolist.global.exception.buinessexception.memberexception.MemberAccessDeniedException;
 import todolist.global.exception.buinessexception.memberexception.MemberNotFoundException;
 import todolist.global.exception.buinessexception.memberexception.MemberPasswordException;
@@ -22,7 +22,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;

@@ -16,7 +16,7 @@ public enum Importance implements BaseEnum {
 
     @Override
     public String getName() {
-        return getName();
+        return name();
     }
 
     @Override

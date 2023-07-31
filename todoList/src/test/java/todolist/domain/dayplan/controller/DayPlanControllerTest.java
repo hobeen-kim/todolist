@@ -5,7 +5,6 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import todolist.domain.dayplan.dto.apidto.request.DayPlanCreateApiDto;
@@ -14,9 +13,7 @@ import todolist.domain.dayplan.dto.apidto.response.DayPlanListResponseApiDto;
 import todolist.domain.dayplan.dto.servicedto.DayPlanCreateServiceDto;
 import todolist.domain.dayplan.dto.servicedto.DayPlanResponseServiceDto;
 import todolist.domain.dayplan.dto.servicedto.DayPlanUpdateServiceDto;
-import todolist.domain.dayplan.entity.DayPlan;
-import todolist.domain.member.entity.Member;
-import todolist.global.ControllerTest;
+import todolist.global.testHelper.ControllerTest;
 import todolist.global.reponse.ApiResponse;
 
 import java.time.LocalDate;
@@ -25,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -37,8 +33,6 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.requestF
 import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static todolist.auth.utils.AuthConstant.AUTHORIZATION;
 
 class DayPlanControllerTest extends ControllerTest {
@@ -141,14 +135,20 @@ class DayPlanControllerTest extends ControllerTest {
                 .andExpect(status().isCreated());
 
         //restdocs
+        setConstraintClass(DayPlanCreateApiDto.class);
+
         actions
                 .andDo(documentHandler.document(
                         getTokenRequestHeader(),
                         requestFields(
-                                fieldWithPath("content").type(STRING).description("일정 내용"),
-                                fieldWithPath("date").type(STRING).description("일정 날짜"),
-                                fieldWithPath("startTime").type(STRING).description("일정 시작 시간"),
-                                fieldWithPath("endTime").type(STRING).description("일정 종료 시간"),
+                                fieldWithPath("content").type(STRING).description("일정 내용")
+                                        .attributes(getConstraint("content")),
+                                fieldWithPath("date").type(STRING).description("일정 날짜")
+                                        .attributes(getConstraint("date")),
+                                fieldWithPath("startTime").type(STRING).description("일정 시작 시간")
+                                        .attributes(getConstraint("startTime")),
+                                fieldWithPath("endTime").type(STRING).description("일정 종료 시간")
+                                        .attributes(getConstraint("endTime")),
                                 fieldWithPath("todoId").type(NUMBER).description("일정에 연결된 todo id").optional()
                         )
                 ));
@@ -188,6 +188,8 @@ class DayPlanControllerTest extends ControllerTest {
                 .andExpect(status().isNoContent());
 
         //restdocs
+        setConstraintClass(DayPlanUpdateApiDto.class);
+
         actions
                 .andDo(documentHandler.document(
                         getTokenRequestHeader(),
@@ -195,7 +197,8 @@ class DayPlanControllerTest extends ControllerTest {
                                 parameterWithName("dayPlanId").description("수정할 dayPlan id")
                         ),
                         requestFields(
-                                fieldWithPath("content").type(STRING).description("일정 내용").optional(),
+                                fieldWithPath("content").type(STRING).description("일정 내용").optional()
+                                        .attributes(getConstraint("content")),
                                 fieldWithPath("date").type(STRING).description("일정 날짜").optional(),
                                 fieldWithPath("startTime").type(STRING).description("일정 시작 시간").optional(),
                                 fieldWithPath("endTime").type(STRING).description("일정 종료 시간").optional(),
@@ -239,7 +242,7 @@ class DayPlanControllerTest extends ControllerTest {
 
     @TestFactory
     @DisplayName("dayPlan 생성 시 validation 검증")
-    Collection<DynamicTest> createDayPlanValidation() throws Exception {
+    Collection<DynamicTest> createDayPlanValidation() {
         //given
         //인증값 설정
         long memberId = 1L;
@@ -270,7 +273,29 @@ class DayPlanControllerTest extends ControllerTest {
                     actions
                             .andDo(print())
                             .andExpect(status().isBadRequest())
-                            .andExpect(jsonPath("$.message").value("내용을 입력해주세요."));
+                            .andExpect(jsonPath("$.data[0].reason").value("내용을 입력해주세요."));
+                }),
+                dynamicTest("content 의 길이가 100자가 넘을 때", () ->{
+                    //given
+                    //생성 api request dto
+                    DayPlanCreateApiDto dto = DayPlanCreateApiDto.builder()
+                            .content("a".repeat(101))
+                            .date(LocalDate.of(2023, 7, 20))
+                            .startTime(LocalTime.of(12, 0, 0))
+                            .endTime(LocalTime.of(12, 20, 0))
+                            .build();
+
+                    String content = objectMapper.writeValueAsString(dto);
+
+                    //when
+                    ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content)
+                            .header(AUTHORIZATION, getAuthorizationToken()));
+
+                    //then
+                    actions
+                            .andDo(print())
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.data[0].reason").value("가능한 길이는 1 ~ 100자 입니다."));
                 }),
                 dynamicTest("date 가 null 일 때", () ->{
                     //given
@@ -292,7 +317,7 @@ class DayPlanControllerTest extends ControllerTest {
                     actions
                             .andDo(print())
                             .andExpect(status().isBadRequest())
-                            .andExpect(jsonPath("$.message").value("날짜를 입력해주세요."));
+                            .andExpect(jsonPath("$.data[0].reason").value("날짜를 입력해주세요."));
                 }),
                 dynamicTest("startTime 이 null 일 때", () ->{
                     //given
@@ -314,7 +339,7 @@ class DayPlanControllerTest extends ControllerTest {
                     actions
                             .andDo(print())
                             .andExpect(status().isBadRequest())
-                            .andExpect(jsonPath("$.message").value("시간을 입력해주세요."));
+                            .andExpect(jsonPath("$.data[0].reason").value("시간을 입력해주세요."));
                 }),
                 dynamicTest("endTime 이 null 일 때", () ->{
                     //given
@@ -336,9 +361,43 @@ class DayPlanControllerTest extends ControllerTest {
                     actions
                             .andDo(print())
                             .andExpect(status().isBadRequest())
-                            .andExpect(jsonPath("$.message").value("시간을 입력해주세요."));
+                            .andExpect(jsonPath("$.data[0].reason").value("시간을 입력해주세요."));
                 })
         );
+    }
+
+    @Test
+    @DisplayName("dayPlan 수정 시 validation 검증 - content 의 길이가 100자가 넘을 때")
+    void updateDayPlanValidation() throws Exception {
+        //given
+        //업데이트 api request dto
+        DayPlanUpdateApiDto dto = DayPlanUpdateApiDto.builder()
+                .content("a".repeat(101))
+                .date(LocalDate.of(2023, 7, 20))
+                .startTime(LocalTime.of(12, 0, 0))
+                .endTime(LocalTime.of(12, 20, 0))
+                .isDone(true)
+                .todoId(1L)
+                .build();
+
+        String content = objectMapper.writeValueAsString(dto);
+
+        //인증값 설정
+        long memberId = 1L;
+        setDefaultAuthentication(memberId);
+
+        //mock 응답값 생성
+        willDoNothing().given(dayPlanService).updateDayPlan(anyLong(), anyLong(), any(DayPlanUpdateServiceDto.class));
+
+        //when
+        ResultActions actions = mockMvc.perform(patchBuilder("/{dayPlanId}", content, 1)
+                .header(AUTHORIZATION, getAuthorizationToken()));
+
+        //then
+        actions
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data[0].reason").value("가능한 길이는 1 ~ 100자 입니다."));
     }
 
     List<DayPlanResponseServiceDto> createDayPlanResponseServiceDtos(LocalDate startDate, int count){

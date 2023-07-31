@@ -2,6 +2,7 @@ package todolist.domain.dayplan.dto.apidto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +18,7 @@ import java.time.LocalTime;
 @Builder
 public class DayPlanUpdateApiDto {
 
+    @Size(min = 1, max = 100, message = "{validation.size}")
     private String content;
     private LocalDate date;
     private LocalTime startTime;

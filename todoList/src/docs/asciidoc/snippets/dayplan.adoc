@@ -1,0 +1,53 @@
+= 일정 API
+
+== 일정 추가
+=== HTTP Request
+include::{snippets}/dayplan/createdayplan/http-request.adoc[]
+==== Request Header
+include::{snippets}/dayplan/createdayplan/request-headers.adoc[]
+==== Request Body
+include::{snippets}/dayplan/createdayplan/request-body.adoc[]
+==== Request Fields
+include::{snippets}/dayplan/createdayplan/request-fields.adoc[]
+=== HTTP Response
+include::{snippets}/dayplan/createdayplan/http-response.adoc[]
+
+== 일정 목록 조회
+=== HTTP Request
+include::{snippets}/dayplan/getdayplans/http-request.adoc[]
+==== Request Header
+include::{snippets}/dayplan/getdayplans/request-headers.adoc[]
+==== Request Query Parameter
+include::{snippets}/dayplan/getdayplans/query-parameters.adoc[]
+=== HTTP Response
+include::{snippets}/dayplan/createdayplan/http-response.adoc[]
+==== Response Body
+include::{snippets}/dayplan/getdayplans/response-body.adoc[]
+==== Response Fields
+include::{snippets}/dayplan/getdayplans/response-fields.adoc[]
+
+
+== 일정 수정
+=== HTTP Request
+include::{snippets}/dayplan/updatedayplan/http-request.adoc[]
+==== Request Header
+include::{snippets}/dayplan/updatedayplan/request-headers.adoc[]
+==== Request Path Parameter
+include::{snippets}/dayplan/updatedayplan/path-parameters.adoc[]
+==== Request Body
+include::{snippets}/dayplan/updatedayplan/request-body.adoc[]
+==== Request Fields
+include::{snippets}/dayplan/updatedayplan/request-fields.adoc[]
+=== HTTP Response
+include::{snippets}/dayplan/updatedayplan/http-response.adoc[]
+
+== 일정 삭제
+=== HTTP Request
+include::{snippets}/dayplan/deletedayplan/http-request.adoc[]
+==== Request Header
+include::{snippets}/dayplan/deletedayplan/request-headers.adoc[]
+==== Request Path Parameter
+include::{snippets}/dayplan/deletedayplan/path-parameters.adoc[]
+=== HTTP Response
+include::{snippets}/dayplan/deletedayplan/http-response.adoc[]
+

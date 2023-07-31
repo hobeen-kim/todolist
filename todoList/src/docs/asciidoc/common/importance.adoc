@@ -1,0 +1,5 @@
+:doctype: book
+:icons: font
+
+[[importance]]
+include::{snippets}/common/enums/custom-response-fields-Importance.adoc[]

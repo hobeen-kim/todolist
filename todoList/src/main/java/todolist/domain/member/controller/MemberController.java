@@ -39,9 +39,9 @@ public class MemberController {
     @PostMapping
     public ResponseEntity<Void> signUp(@RequestBody @Valid MemberCreateApiDto dto) {
 
-        Long savedMemberId = memberService.saveMember(dto.toServiceDto());
+        memberService.saveMember(dto.toServiceDto());
 
-        URI uri = URI.create(MEMBER_URL + "/" + savedMemberId);
+        URI uri = URI.create(MEMBER_URL + "/my-info");
 
         return ResponseEntity.created(uri).build();
     }

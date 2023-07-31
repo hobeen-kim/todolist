@@ -13,7 +13,7 @@ import todolist.domain.member.entity.Member;
 import todolist.domain.member.repository.MemberRepository;
 import todolist.domain.todo.entity.Todo;
 import todolist.domain.todo.repository.TodoRepository;
-import todolist.global.ServiceTest;
+import todolist.global.testHelper.ServiceTest;
 import todolist.global.exception.buinessexception.memberexception.MemberNotFoundException;
 import todolist.global.exception.buinessexception.planexception.PlanAccessDeniedException;
 import todolist.global.exception.buinessexception.planexception.PlanNotFoundException;
