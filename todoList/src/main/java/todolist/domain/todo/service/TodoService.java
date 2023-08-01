@@ -5,6 +5,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import todolist.auth.service.CustomUserDetailsService;
+import todolist.domain.category.entity.Category;
+import todolist.domain.category.service.CategoryService;
+import todolist.domain.dayplan.entity.DayPlan;
 import todolist.domain.member.entity.Member;
 import todolist.domain.member.service.MemberService;
 import todolist.domain.todo.dto.servicedto.TodoResponseServiceDto;
@@ -14,6 +17,8 @@ import todolist.domain.todo.dto.servicedto.TodoUpdateServiceDto;
 import todolist.domain.todo.entity.Todo;
 import todolist.domain.todo.repository.TodoRepository;
 import todolist.domain.todo.repository.searchCond.SearchType;
+import todolist.domain.toplist.entity.TopList;
+import todolist.domain.toplist.service.TopListService;
 import todolist.global.exception.buinessexception.planexception.PlanNotFoundException;
 import todolist.global.exception.buinessexception.planexception.PlanAccessDeniedException;
 
@@ -26,6 +31,8 @@ import java.util.List;
 public class TodoService {
 
     private final TodoRepository todoRepository;
+    private final TopListService topListService;
+    private final CategoryService categoryService;
     private final CustomUserDetailsService userDetailsService;
 
 
@@ -37,15 +44,25 @@ public class TodoService {
      */
     @Transactional
     public TodoResponseServiceDto saveTodo(Long memberId, TodoCreateServiceDto dto) {
+
+        Member member = verifiedMember(memberId);
+        Category category = categoryService.verifiedCategory(memberId, dto.getCategoryId());
+
         Todo todo = Todo.createTodo(
+                member,
+                category,
                 dto.getContent(),
                 dto.getImportance(),
                 dto.getStartDate(),
                 dto.getDeadLine()
         );
 
-        Member member = verifiedMember(memberId);
-        member.addTodos(todo);
+        addTodoToMember(memberId, todo);
+
+        if(dto.getTopListId() != null){
+            addTodoToTopList(memberId, dto.getTopListId(), todo);
+        }
+
         todoRepository.save(todo);
 
         return TodoResponseServiceDto.of(todo);
@@ -113,7 +130,7 @@ public class TodoService {
         return userDetailsService.loadUserById(memberId);
     }
 
-    private Todo verifiedTodo(Long memberId, Long todoId){
+    public Todo verifiedTodo(Long memberId, Long todoId){
         Todo todo = todoRepository.findByIdWithMember(todoId)
                 .orElseThrow(PlanNotFoundException::new);
 
@@ -122,5 +139,15 @@ public class TodoService {
         }
 
         return todo;
+    }
+
+    private void addTodoToMember(Long memberId, Todo todo) {
+        Member member = verifiedMember(memberId);
+        member.addTodos(todo);
+    }
+
+    private void addTodoToTopList(Long memberId, Long topListId, Todo todo) {
+        TopList topList = topListService.verifiedTopList(memberId, topListId);
+        todo.addTopList(topList);
     }
 }

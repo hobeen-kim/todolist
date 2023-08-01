@@ -28,19 +28,27 @@ public class TopList extends PlanEntity {
 
     private LocalDate doneDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private Category category;
-
     @OneToMany(mappedBy = "topList", cascade = CascadeType.ALL)
     private List<Todo> todos = new ArrayList<>();
 
-    @Builder
     private TopList(Member member, String title, String content, Category category) {
         this.member = member;
         this.title = title;
         this.content = content;
         this.category = category;
+    }
+
+    @Builder
+    private TopList(Member member, String title, String content, Category category, LocalDate doneDate) {
+        this.member = member;
+        this.title = title;
+        this.content = content;
+        this.category = category;
+        this.doneDate = doneDate;
+        if(doneDate != null){
+            this.status = Status.COMPLETED;
+            this.isDone = true;
+        }
     }
 
     //==연관 관계 메서드==//

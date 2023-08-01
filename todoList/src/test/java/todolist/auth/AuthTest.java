@@ -379,6 +379,7 @@ class AuthTest implements ControllerTestHelper {
                 .name("test")
                 .username(username)
                 .password(passwordEncoder.encode(password))
+                .email("email@test.com")
                 .authority(Authority.ROLE_USER)
                 .build();
 
@@ -393,6 +394,7 @@ class AuthTest implements ControllerTestHelper {
                 .name("test")
                 .username(username)
                 .password(passwordEncoder.encode(password))
+                .email("email@test.com")
                 .authority(Authority.ROLE_ADMIN)
                 .build();
 

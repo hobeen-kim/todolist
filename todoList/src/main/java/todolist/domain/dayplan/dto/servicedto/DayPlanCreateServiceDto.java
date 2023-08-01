@@ -15,4 +15,5 @@ public class DayPlanCreateServiceDto {
     private LocalTime startTime;
     private LocalTime endTime;
     private Long todoId;
+    private Long categoryId;
 }

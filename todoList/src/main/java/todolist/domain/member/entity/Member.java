@@ -5,8 +5,10 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import todolist.domain.category.entity.Category;
 import todolist.domain.dayplan.entity.DayPlan;
 import todolist.domain.todo.entity.Todo;
+import todolist.domain.toplist.entity.TopList;
 import todolist.global.entity.BaseEntity;
 import todolist.global.exception.buinessexception.memberexception.MemberPasswordException;
 
@@ -22,16 +24,27 @@ public class Member extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
     private String username;
 
+    @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
     private String email;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Authority authority;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<Category> categories = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<TopList> topLists = new ArrayList<>();
 
     // todos 의 생명주기는 member 에 의존한다.
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
@@ -50,7 +63,17 @@ public class Member extends BaseEntity {
         this.authority = authority;
     }
 
+
     //==연관관계 메서드==//
+    public void addCategories(Category category) {
+        this.categories.add(category);
+        category.addMember(this);
+    }
+
+    public void addTopLists(TopList topList) {
+        this.topLists.add(topList);
+        topList.addMember(this);
+    }
 
     /**
      * Member와 Todo의 연관관계를 설정한다. member 에서 todo를 추가할 수 있도록 한다.
@@ -60,7 +83,6 @@ public class Member extends BaseEntity {
         this.todos.add(todo);
         todo.addMember(this);
     }
-
     /**
      * Member와 dayPlan 의 연관관계를 설정한다. member 에서 dayPlan 을 추가할 수 있도록 한다.
      * @param dayPlan : 추가할 dayPlan
@@ -77,6 +99,7 @@ public class Member extends BaseEntity {
     }
 
     //==비즈니스 메서드==//
+
     public void changeAuthority(Authority authority) {
         this.authority = authority;
     }
@@ -89,5 +112,4 @@ public class Member extends BaseEntity {
 
         this.password = newPassword;
     }
-
 }

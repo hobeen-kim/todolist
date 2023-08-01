@@ -28,10 +28,13 @@ public class Todo extends PlanEntity {
     private Long id;
 
     @Enumerated(STRING)
+    @Column(nullable = false)
     private Importance importance = Importance.WHITE;
 
+    @Column(nullable = false)
     private LocalDate startDate;
 
+    @Column(nullable = false)
     private LocalDate deadLine;
 
     private LocalDate doneDate;
@@ -40,10 +43,12 @@ public class Todo extends PlanEntity {
     @JoinColumn(name = "top_list_id")
     private TopList topList;
 
-    @OneToMany(mappedBy = "todo", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "todo", cascade = CascadeType.ALL)
     private List<DayPlan> dayPlans = new ArrayList<>();
 
-    private Todo(String content, Importance importance, LocalDate startDate, LocalDate deadLine) {
+    private Todo(Member member, Category category, String content, Importance importance, LocalDate startDate, LocalDate deadLine) {
+        this.member = member;
+        this.category = category;
         this.content = content;
         this.importance = importance;
         this.startDate = startDate;
@@ -71,19 +76,31 @@ public class Todo extends PlanEntity {
         this.dayPlans.remove(dayPlan);
     }
 
+    public void addTopList(TopList topList) {
+        this.topList = topList;
+        topList.addTodo(this);
+    }
+
+    @Override
+    public void changeCategory(Category category) {
+        this.category = category;
+        category.addTodo(this);
+    }
+
     //==생성 메서드==//
-    public static Todo createTodo(String content, Importance importance, LocalDate startDate, LocalDate deadLine) {
+
+    public static Todo createTodo(Member member, Category category, String content, Importance importance, LocalDate startDate, LocalDate deadLine) {
 
         validateDate(startDate, deadLine);
 
-        return new Todo(content, importance, startDate, deadLine);
+        return new Todo(member, category, content, importance, startDate, deadLine);
     }
 
     //==비즈니스 로직==//
-
     public void changeImportance(Importance importance) {
         this.importance = importance;
     }
+
     public void changeContent(String content) {
         this.content = content;
     }
@@ -110,5 +127,4 @@ public class Todo extends PlanEntity {
 
         if (startDate.isAfter(deadLine)) throw new PlanDateValidException();
     }
-
 }

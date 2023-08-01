@@ -5,7 +5,11 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import todolist.domain.category.entity.Category;
+import todolist.domain.category.repository.CategoryRepository;
 import todolist.domain.dayplan.entity.DayPlan;
+import todolist.domain.dayplan.repository.DayPlanRepository;
+import todolist.domain.member.entity.Authority;
 import todolist.domain.member.entity.Member;
 import todolist.domain.member.repository.MemberRepository;
 import todolist.domain.todo.dto.servicedto.TodoCreateServiceDto;
@@ -15,6 +19,8 @@ import todolist.domain.todo.entity.Importance;
 import todolist.domain.todo.entity.Todo;
 import todolist.domain.todo.repository.TodoRepository;
 import todolist.domain.todo.repository.searchCond.SearchType;
+import todolist.domain.toplist.entity.TopList;
+import todolist.domain.toplist.repository.TopListRepository;
 import todolist.global.testHelper.ServiceTest;
 import todolist.global.exception.buinessexception.planexception.PlanAccessDeniedException;
 import todolist.global.exception.buinessexception.planexception.PlanDateValidException;
@@ -37,52 +43,133 @@ class TodoServiceTest extends ServiceTest {
     @Autowired TodoService todoService;
     @Autowired MemberRepository memberRepository;
     @Autowired TodoRepository todoRepository;
+    @Autowired TopListRepository topListRepository;
+    @Autowired CategoryRepository categoryRepository;
+    @Autowired DayPlanRepository dayPlanRepository;
 
     @Test
     @DisplayName("memberId 와 생성정보를 받아 Todo 를 생성한다.")
     void saveTodo() {
         //given
+        Member member = createMemberDefault();
+        Category category = createCategory(member);
+        member.addCategories(category);
+
+        memberRepository.save(member);
+
         TodoCreateServiceDto dto = TodoCreateServiceDto.builder()
                 .content("test")
                 .importance(RED)
                 .startDate(LocalDate.of(2023, 7, 21))
                 .deadLine(LocalDate.of(2023, 7, 22))
+                .categoryId(category.getId())
                 .build();
 
-        Member savedMember = memberRepository.save(createMemberDefault());
 
         //when
-        TodoResponseServiceDto todoDto = todoService.saveTodo(savedMember.getId(), dto);
+        TodoResponseServiceDto todoDto = todoService.saveTodo(member.getId(), dto);
 
         //then
         assertThat(todoDto.getContent()).isEqualTo(dto.getContent());
         assertThat(todoDto.getImportance()).isEqualTo(dto.getImportance());
         assertThat(todoDto.getStartDate()).isEqualTo(dto.getStartDate());
         assertThat(todoDto.getDeadLine()).isEqualTo(dto.getDeadLine());
-        assertThat(savedMember.getTodos()).hasSize(1);
+        assertThat(todoDto.getCategoryId()).isNotNull();
+        assertThat(member.getTodos()).hasSize(1);
+
     }
 
     @Test
     @DisplayName("Todo 생성 시 시작예정일보다 마감예정일이 빠르면 PlanDateValidException 이 발생한다.")
     void saveTodoException() {
         //given
-        TodoCreateServiceDto todoCreateServiceDto = TodoCreateServiceDto.builder()
+        Member member = createMemberDefault();
+        Category category = createCategory(member);
+        member.addCategories(category);
+
+        memberRepository.save(member);
+
+        TodoCreateServiceDto dto = TodoCreateServiceDto.builder()
                 .content("test")
                 .importance(RED)
                 .startDate(LocalDate.of(2023, 7, 21))
                 .deadLine(LocalDate.of(2023, 7, 20))
+                .categoryId(category.getId())
                 .build();
 
-        Member savedMember = memberRepository.save(createMemberDefault());
 
         //when
         PlanDateValidException exception = assertThrows(PlanDateValidException.class,
-                () -> todoService.saveTodo(savedMember.getId(), todoCreateServiceDto));
+                () -> todoService.saveTodo(member.getId(), dto));
 
         //then
         assertThat(exception.getMessage()).isEqualTo(PlanDateValidException.MESSAGE);
         assertThat(exception.getErrorCode()).isEqualTo(PlanDateValidException.CODE);
+    }
 
+    @Test
+    @DisplayName("Todo 생성 시 TopList id 를 받아서 연관관계를 맺는다.")
+    void saveTodoWithTopList() {
+        //given
+        Member member = createMemberDefault();
+        Category category = createCategory(member);
+        TopList topList = createTopList(member, category);
+
+        member.addCategories(category);
+        member.addTopLists(topList);
+
+        memberRepository.save(member);
+
+        TodoCreateServiceDto dto = TodoCreateServiceDto.builder()
+                .content("test")
+                .importance(RED)
+                .startDate(LocalDate.of(2023, 7, 21))
+                .deadLine(LocalDate.of(2023, 7, 22))
+                .topListId(topList.getId())
+                .categoryId(category.getId())
+                .build();
+
+        //when
+        TodoResponseServiceDto todoDto = todoService.saveTodo(member.getId(), dto);
+
+        //then
+        Long id = todoRepository.findById(todoDto.getId()).orElseThrow().getTopList().getId();
+        assertThat(id).isEqualTo(topList.getId());
+    }
+
+    @Test
+    @DisplayName("Todo 생성 시 TopList id 를 받을 때 로그인된 member 의 id 가 아니면 PlanAccessDeniedException 이 발생한다.")
+    void saveTodoWithTopListException() {
+        //given
+        Member currentMember = createMemberDefault();
+        Member otherMember = createMemberDefault();
+        Category category = createCategory(otherMember);
+        Category currentMemberCategory = createCategory(currentMember);
+        TopList topList = createTopList(otherMember, category);
+
+        currentMember.addCategories(currentMemberCategory);
+        otherMember.addCategories(category);
+        otherMember.addTopLists(topList);
+
+        memberRepository.save(otherMember);
+        memberRepository.save(currentMember);
+
+        TodoCreateServiceDto dto = TodoCreateServiceDto.builder()
+                .content("test")
+                .importance(RED)
+                .startDate(LocalDate.of(2023, 7, 21))
+                .deadLine(LocalDate.of(2023, 7, 22))
+                .topListId(topList.getId())
+                .categoryId(currentMemberCategory.getId())
+                .build();
+
+        //when & then
+        PlanAccessDeniedException exception = assertThrows(PlanAccessDeniedException.class, () -> {
+            todoService.saveTodo(currentMember.getId(), dto); // 다른 멤버의 topList id 로 요청
+        });
+
+        assertThat(exception.getMessage()).isEqualTo(PlanAccessDeniedException.MESSAGE);
+        assertThat(exception.getErrorCode()).isEqualTo(PlanAccessDeniedException.CODE);
     }
 
     @Test
@@ -90,7 +177,10 @@ class TodoServiceTest extends ServiceTest {
     void findTodo() {
         //given
         Member member = createMemberDefault();
-        Todo todo = createTodoDefault();
+        Category category = createCategory(member);
+        Todo todo = createTodo(member, category);
+
+        member.addCategories(category);
         member.addTodos(todo);
 
         memberRepository.save(member);
@@ -109,7 +199,9 @@ class TodoServiceTest extends ServiceTest {
     void findTodoException1() {
         //given
         Member member = createMemberDefault();
-        Todo todo = createTodoDefault();
+        Category category = createCategory(member);
+        Todo todo = createTodo(member, category);
+        member.addCategories(category);
         member.addTodos(todo);
 
         memberRepository.save(member);
@@ -128,7 +220,9 @@ class TodoServiceTest extends ServiceTest {
     void findTodoException2() {
         //given
         Member member = createMemberDefault();
-        Todo todo = createTodoDefault();
+        Category category = createCategory(member);
+        Todo todo = createTodo(member, category);
+        member.addCategories(category);
         member.addTodos(todo);
 
         memberRepository.save(member);
@@ -147,7 +241,10 @@ class TodoServiceTest extends ServiceTest {
     Collection<DynamicTest> findAll() {
         //given
         Member member = createMemberDefault();
-        List<Todo> todos = createTodos(50);
+        Category category = createCategory(member);
+        List<Todo> todos = createTodos(member, category, 50);
+
+        member.addCategories(category);
         addTodos(member, todos);
 
         memberRepository.save(member);
@@ -228,11 +325,14 @@ class TodoServiceTest extends ServiceTest {
     void updateTodo() {
         //given
         Member member = createMemberDefault();
+        Category category = createCategory(member);
         LocalDate startDate = LocalDate.of(2023, 7, 22);
         LocalDate deadline = LocalDate.of(2023, 7, 23);
-        Todo todo = createTodo("test", RED, startDate, deadline);
+        Todo todo = createTodo(member, category,"test", RED, startDate, deadline);
 
+        member.addCategories(category);
         member.addTodos(todo);
+
         memberRepository.save(member);
 
         TodoUpdateServiceDto dto = TodoUpdateServiceDto.builder()
@@ -260,10 +360,12 @@ class TodoServiceTest extends ServiceTest {
     void changeStartDateException() {
         //given
         Member member = createMemberDefault();
+        Category category = createCategory(member);
         LocalDate startDate = LocalDate.of(2023, 7, 22);
         LocalDate deadline = LocalDate.of(2023, 7, 23);
-        Todo todo = createTodo(startDate, deadline);
+        Todo todo = createTodo(member, category, startDate, deadline);
 
+        member.addCategories(category);
         member.addTodos(todo);
         memberRepository.save(member);
 
@@ -286,10 +388,12 @@ class TodoServiceTest extends ServiceTest {
     void changeDeadLineException() {
         //given
         Member member = createMemberDefault();
+        Category category = createCategory(member);
         LocalDate startDate = LocalDate.of(2023, 7, 22);
         LocalDate deadline = LocalDate.of(2023, 7, 23);
-        Todo todo = createTodo(startDate, deadline);
+        Todo todo = createTodo(member, category, startDate, deadline);
 
+        member.addCategories(category);
         member.addTodos(todo);
         memberRepository.save(member);
 
@@ -312,10 +416,12 @@ class TodoServiceTest extends ServiceTest {
     void updateTodoException() {
         //given
         Member member = createMemberDefault();
+        Category category = createCategory(member);
         LocalDate startDate = LocalDate.of(2023, 7, 22);
         LocalDate deadline = LocalDate.of(2023, 7, 23);
-        Todo todo = createTodo("test", RED, startDate, deadline);
+        Todo todo = createTodo(member, category, "content", RED, startDate, deadline);
 
+        member.addCategories(category);
         member.addTodos(todo);
         memberRepository.save(member);
 
@@ -340,9 +446,11 @@ class TodoServiceTest extends ServiceTest {
     void deleteTodo() {
         //given
         Member member = createMemberDefault();
-        Todo todo = createTodoDefault();
-        DayPlan dayPlan = createDayPlanDefault();
+        Category category = createCategory(member);
+        Todo todo = createTodo(member, category);
+        DayPlan dayPlan = createDayPlan(member, category);
 
+        member.addCategories(category);
         member.addTodos(todo);
         member.addDayPlans(dayPlan);
         dayPlan.addTodo(todo);
@@ -354,9 +462,9 @@ class TodoServiceTest extends ServiceTest {
 
         //then
         Todo findTodo = em.find(Todo.class, todo.getId());
-        DayPlan findDayPlan = em.find(DayPlan.class, dayPlan.getId());
-
         assertThat(findTodo).isNull();
+
+        DayPlan findDayPlan = em.find(DayPlan.class, dayPlan.getId());
         assertThat(findDayPlan).isNull();
     }
 
@@ -365,8 +473,10 @@ class TodoServiceTest extends ServiceTest {
     void deleteTodoException1() {
         //given
         Member member = createMemberDefault();
-        Todo todo = createTodoDefault();
+        Category category = createCategory(member);
+        Todo todo = createTodo(member, category);
 
+        member.addCategories(category);
         member.addTodos(todo);
         memberRepository.save(member);
 
@@ -399,69 +509,9 @@ class TodoServiceTest extends ServiceTest {
         assertThat(exception.getErrorCode()).isEqualTo(PlanNotFoundException.CODE);
     }
 
-    Member createMemberDefault() {
-        return Member.builder()
-                .name("test")
-                .username("test")
-                .build();
-    }
-
-    Todo createTodoDefault(){
-        return Todo.builder()
-                .content("test")
-                .importance(RED)
-                .deadLine(LocalDate.of(2023, 7, 21))
-                .build();
-    }
-
-    Todo createTodo(String content, Importance importance, LocalDate startDate, LocalDate deadLine){
-        Todo todo = Todo.builder()
-                .content(content)
-                .importance(importance)
-                .startDate(startDate)
-                .deadLine(deadLine)
-                .build();
-
-        return todo;
-    }
-
-    Todo createTodo(LocalDate startDate, LocalDate deadLine){
-        Todo todo = Todo.builder()
-                .content("test")
-                .importance(RED)
-                .startDate(startDate)
-                .deadLine(deadLine)
-                .build();
-
-        return todo;
-    }
-
-    List<Todo> createTodos(int count){
-        List<Todo> todos = new ArrayList<>();
-        LocalDate startDate = LocalDate.of(2023, 3, 1);
-        LocalDate deadline = LocalDate.of(2023, 4, 1);
-        LocalDate doneDate = LocalDate.of(2023, 3, 15);
-        for (int i = 0; i < count; i++) {
-            Importance importance = Importance.values()[i % 3];
-            Todo todo = createTodo("content " + (i + 1), importance, startDate.plusDays(i), deadline.plusDays(i));
-            todo.isDone(doneDate.plusDays(i));
-            todos.add(todo);
-        }
-        return todos;
-    }
-
     void addTodos(Member member, List<Todo> todos){
         for (Todo todo : todos) {
             member.addTodos(todo);
         }
-    }
-
-    DayPlan createDayPlanDefault(){
-        return DayPlan.builder()
-                .content("test")
-                .date(LocalDate.of(2023, 7, 20))
-                .startTime(LocalTime.of(12, 0, 0))
-                .endTime(LocalTime.of(12, 20, 0))
-                .build();
     }
 }

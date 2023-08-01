@@ -6,8 +6,10 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import todolist.domain.category.entity.Category;
 import todolist.domain.dayplan.entity.DayPlan;
 import todolist.domain.dayplan.repository.searchCond.DateSearchCond;
+import todolist.domain.member.entity.Authority;
 import todolist.domain.member.entity.Member;
 import todolist.global.testHelper.RepositoryTest;
 
@@ -29,10 +31,12 @@ class DayPlanRepositoryTest extends RepositoryTest {
     public void findByIdWithMember(){
         //given
         Member member = createMemberDefault();
-        DayPlan dayPlan = createDayPlanDefault();
-        member.addDayPlans(dayPlan);
+        Category category = createCategory(member);
+        DayPlan dayPlan = createDayPlan(member, category);
 
         em.persist(member);
+        em.persist(category);
+        em.persist(dayPlan);
         em.flush();
         em.clear();
 
@@ -50,10 +54,13 @@ class DayPlanRepositoryTest extends RepositoryTest {
 
         //given
         Member member = createMemberDefault();
+        Category category = createCategory(member);
         List<DayPlan> dayPlans = createDayPlans(
+                category,
                 LocalDate.of(2023, 3, 1), 50);
         addDayPlans(member, dayPlans);
 
+        em.persist(category);
         em.persist(member);
         em.flush();
         em.clear();
@@ -127,35 +134,20 @@ class DayPlanRepositoryTest extends RepositoryTest {
 
     }
 
-    Member createMemberDefault() {
-        return Member.builder()
-                .name("test")
-                .username("test")
-                .build();
-    }
-
-    DayPlan createDayPlanDefault(){
-        return DayPlan.builder()
-                .content("test")
-                .date(LocalDate.of(2023, 7, 20))
-                .startTime(LocalTime.of(12, 0, 0))
-                .endTime(LocalTime.of(12, 20, 0))
-                .build();
-    }
-
-    List<DayPlan> createDayPlans(LocalDate startDate, int count){
+    List<DayPlan> createDayPlans(Category category, LocalDate startDate, int count){
         List<DayPlan> dayPlans = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
-            DayPlan dayPlan = createDayPlan(startDate.plusDays(i));
+            DayPlan dayPlan = createDayPlan(category, startDate.plusDays(i));
             dayPlans.add(dayPlan);
         }
         return dayPlans;
     }
 
-    DayPlan createDayPlan(LocalDate date){
+    DayPlan createDayPlan(Category category, LocalDate date){
         return DayPlan.builder()
                 .content("test")
+                .category(category)
                 .date(date)
                 .startTime(LocalTime.of(10, 0, 0))
                 .endTime(LocalTime.of(11, 0, 0))

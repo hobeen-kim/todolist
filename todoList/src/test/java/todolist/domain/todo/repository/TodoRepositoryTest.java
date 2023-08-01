@@ -6,6 +6,8 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import todolist.domain.category.entity.Category;
+import todolist.domain.member.entity.Authority;
 import todolist.domain.member.entity.Member;
 import todolist.domain.todo.entity.Importance;
 import todolist.domain.todo.entity.Todo;
@@ -33,7 +35,10 @@ class TodoRepositoryTest extends RepositoryTest {
 
         //given
         Member member = createMemberDefault();
-        Todo todo = createTodoDefault();
+        Category category = createCategory(member);
+        Todo todo = createTodo(member, category);
+
+        member.addCategories(category);
         member.addTodos(todo);
 
         em.persist(member);
@@ -55,10 +60,12 @@ class TodoRepositoryTest extends RepositoryTest {
     Collection<DynamicTest> findByCond() {
         //given
         Member member = createMemberDefault();
-        List<Todo> todos = createTodos(50);
-        addTodos(member, todos);
+        Category category = createCategory(member);
+        List<Todo> todos = createTodos(member, category, 50);
 
         em.persist(member);
+        em.persist(category);
+        todos.forEach(em::persist);
 
         em.flush();
         em.clear();
@@ -145,40 +152,28 @@ class TodoRepositoryTest extends RepositoryTest {
 
     }
 
-    Member createMemberDefault() {
-        return Member.builder()
-                .name("test")
-                .username("test")
-                .build();
-    }
+    Todo createTodo(Member member, Category category, String content, Importance importance, LocalDate startDate, LocalDate deadLine){
 
-    Todo createTodoDefault() {
         return Todo.builder()
-                .content("test")
-                .importance(RED)
-                .deadLine(LocalDate.of(2023, 7, 21))
-                .build();
-    }
-
-    Todo createTodo(String content, Importance importance, LocalDate startDate, LocalDate deadLine){
-        Todo todo = Todo.builder()
+                .member(member)
+                .category(category)
                 .content(content)
                 .importance(importance)
                 .startDate(startDate)
                 .deadLine(deadLine)
                 .build();
-
-        return todo;
     }
 
-    List<Todo> createTodos(int count){
+    List<Todo> createTodos(Member member, Category category, int count){
         List<Todo> todos = new ArrayList<>();
         LocalDate startDate = LocalDate.of(2023, 3, 1);
         LocalDate deadline = LocalDate.of(2023, 4, 1);
         LocalDate doneDate = LocalDate.of(2023, 3, 15);
         for (int i = 0; i < count; i++) {
             Importance importance = Importance.values()[i % 3];
-            Todo todo = createTodo("content " + (i + 1), importance, startDate.plusDays(i), deadline.plusDays(i));
+            Todo todo = createTodo(
+                    member, category,
+                    "content " + (i + 1), importance, startDate.plusDays(i), deadline.plusDays(i));
             todo.isDone(doneDate.plusDays(i));
             todos.add(todo);
         }

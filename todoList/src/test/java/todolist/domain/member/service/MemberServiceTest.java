@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import todolist.domain.category.entity.Category;
 import todolist.domain.dayplan.entity.DayPlan;
 import todolist.domain.member.dto.servicedto.MemberCreateServiceDto;
 import todolist.domain.member.dto.servicedto.MemberResponseServiceDto;
@@ -156,14 +157,18 @@ class MemberServiceTest extends ServiceTest {
         String password = "1234";
         String encodedPassword = passwordEncoder.encode(password);
         Member member = createMember(encodedPassword);
+        Member member2 = createMemberDefault();
 
-        Todo todo = createTodo();
-        DayPlan dayPlan = createDayPlan();
+        Category category = createCategory(member);
+        Todo todo = createTodo(member, category);
+        DayPlan dayPlan = createDayPlan(member, category);
 
+        member.addCategories(category);
         member.addTodos(todo);
         member.addDayPlans(dayPlan);
 
         memberRepository.save(member);
+        memberRepository.save(member2);
 
         //when
         memberService.withdrawal(member.getId(), member.getId(), password);
@@ -279,16 +284,6 @@ class MemberServiceTest extends ServiceTest {
             members.add(createMemberUsername("test " + i));
         }
         return members;
-    }
-
-    Member createMemberDefault() {
-        return Member.builder()
-                .name("test")
-                .username("test")
-                .password("1234")
-                .authority(Authority.ROLE_USER)
-                .email("test@test.com")
-                .build();
     }
 
     Member createMember(Authority authority) {

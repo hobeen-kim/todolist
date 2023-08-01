@@ -23,6 +23,8 @@ public class TodoResponseServiceDto {
     private LocalDate startDate;
     private LocalDate deadLine;
     private LocalDate doneDate;
+    private Long topListId;
+    private Long categoryId;
 
     public static TodoResponseServiceDto of(Todo todo) {
         return new TodoResponseServiceDto(
@@ -32,7 +34,9 @@ public class TodoResponseServiceDto {
                 todo.isDone(),
                 todo.getStartDate(),
                 todo.getDeadLine(),
-                todo.getDoneDate()
+                todo.getDoneDate(),
+                todo.getTopList() == null ? null : todo.getTopList().getId(),
+                todo.getCategory() == null ? null : todo.getCategory().getId()
         );
     }
 

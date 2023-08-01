@@ -28,6 +28,8 @@ public class DayPlanCreateApiDto {
     @NotNull(message = "{validation.time}")
     private LocalTime endTime;
     private Long todoId;
+    @NotNull(message = "{validation.category}")
+    private Long categoryId;
 
     public DayPlanCreateServiceDto toServiceDto() {
 
@@ -37,6 +39,7 @@ public class DayPlanCreateApiDto {
                 .startTime(this.startTime)
                 .endTime(this.endTime)
                 .todoId(this.todoId)
+                .categoryId(this.categoryId)
                 .build();
 
     }

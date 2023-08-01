@@ -1,6 +1,7 @@
 package todolist.domain.dayplan.dto.servicedto;
 
 import lombok.*;
+import todolist.domain.category.entity.Category;
 import todolist.domain.dayplan.entity.DayPlan;
 import todolist.domain.todo.entity.Todo;
 
@@ -22,6 +23,7 @@ public class DayPlanResponseServiceDto {
     private LocalTime startTime;
     private LocalTime endTime;
     private Long todoId;
+    private Long categoryId;
 
     public static DayPlanResponseServiceDto of(DayPlan dayPlan) {
         return new DayPlanResponseServiceDto(
@@ -31,7 +33,8 @@ public class DayPlanResponseServiceDto {
                 dayPlan.getDate(),
                 dayPlan.getStartTime(),
                 dayPlan.getEndTime(),
-                Optional.ofNullable(dayPlan.getTodo()).map(Todo::getId).orElse(null)
+                Optional.ofNullable(dayPlan.getTodo()).map(Todo::getId).orElse(null),
+                Optional.ofNullable(dayPlan.getCategory()).map(Category::getId).orElse(null)
         );
     }
 

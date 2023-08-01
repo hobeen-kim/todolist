@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import todolist.auth.service.CustomUserDetailsService;
+import todolist.domain.category.entity.Category;
+import todolist.domain.category.service.CategoryService;
 import todolist.domain.dayplan.dto.servicedto.DayPlanCreateServiceDto;
 import todolist.domain.dayplan.dto.servicedto.DayPlanResponseServiceDto;
 import todolist.domain.dayplan.dto.servicedto.DayPlanUpdateServiceDto;
@@ -11,9 +13,8 @@ import todolist.domain.dayplan.entity.DayPlan;
 import todolist.domain.dayplan.repository.DayPlanRepository;
 import todolist.domain.dayplan.repository.searchCond.DateSearchCond;
 import todolist.domain.member.entity.Member;
-import todolist.domain.member.service.MemberService;
 import todolist.domain.todo.entity.Todo;
-import todolist.domain.todo.repository.TodoRepository;
+import todolist.domain.todo.service.TodoService;
 import todolist.global.exception.buinessexception.planexception.PlanAccessDeniedException;
 import todolist.global.exception.buinessexception.planexception.PlanNotFoundException;
 
@@ -28,7 +29,8 @@ public class DayPlanService {
 
     private final DayPlanRepository dayPlanRepository;
     private final CustomUserDetailsService userDetailsService;
-    private final TodoRepository todoRepository;
+    private final CategoryService categoryService;
+    private final TodoService todoService;
 
     /**
      * DayPlan 을 생성하고 저장합니다.
@@ -39,14 +41,17 @@ public class DayPlanService {
     @Transactional
     public DayPlanResponseServiceDto saveDayPlan(Long memberId, DayPlanCreateServiceDto dto) {
 
+        Member verifiedMember = verifiedMember(memberId);
+        Category verifiedCategory = categoryService.verifiedCategory(memberId, dto.getCategoryId());
+
         DayPlan dayPlan = DayPlan.createDayPlan(
+                verifiedMember,
+                verifiedCategory,
                 dto.getContent(),
                 dto.getDate(),
                 dto.getStartTime(),
                 dto.getEndTime()
         );
-
-        addDayPlanToMember(memberId, dayPlan);
 
         if(dto.getTodoId() != null){
             addDayPlanToTodo(memberId, dto.getTodoId(), dayPlan);
@@ -80,9 +85,30 @@ public class DayPlanService {
         dayPlanRepository.delete(dayPlan);
     }
 
+    private DayPlan verifiedDayPlan(Long memberId, Long dayPlanId) {
+        DayPlan dayPlan = dayPlanRepository.findByIdWithMember(dayPlanId)
+                .orElseThrow(PlanNotFoundException::new);
+
+        if(!dayPlan.getMember().getId().equals(memberId)){
+            throw new PlanAccessDeniedException();
+        }
+
+        return dayPlan;
+    }
+
     private void addDayPlanToTodo(Long memberId, Long todoId, DayPlan dayPlan) {
-        Todo todo = verifiedTodo(memberId, todoId);
+        Todo todo = todoService.verifiedTodo(memberId, todoId);
         dayPlan.addTodo(todo);
+    }
+
+    private void addDayPlanToCategory(Long memberId, Long categoryId, DayPlan dayPlan) {
+        Category category = categoryService.verifiedCategory(memberId, categoryId);
+        dayPlan.changeCategory(category);
+    }
+
+    private void addDayPlanToMember(Long memberId, DayPlan dayPlan) {
+        Member member = verifiedMember(memberId);
+        member.addDayPlans(dayPlan);
     }
 
     private void update(DayPlan dayPlan, DayPlanUpdateServiceDto dto) {
@@ -107,34 +133,7 @@ public class DayPlanService {
         dayPlan.changeTime(dto.getStartTime(), dto.getEndTime());
     }
 
-    private void addDayPlanToMember(Long memberId, DayPlan dayPlan) {
-        Member member = verifiedMember(memberId);
-        member.addDayPlans(dayPlan);
-    }
-
-    private DayPlan verifiedDayPlan(Long memberId, Long dayPlanId) {
-        DayPlan dayPlan = dayPlanRepository.findByIdWithMember(dayPlanId)
-                .orElseThrow(PlanNotFoundException::new);
-
-        if(!dayPlan.getMember().getId().equals(memberId)){
-            throw new PlanAccessDeniedException();
-        }
-
-        return dayPlan;
-    }
-
     private Member verifiedMember(Long memberId){
         return userDetailsService.loadUserById(memberId);
-    }
-
-    private Todo verifiedTodo(Long memberId, Long todoId){
-        Todo todo = todoRepository.findByIdWithMember(todoId)
-                .orElseThrow(PlanNotFoundException::new);
-
-        if(!todo.getMember().getId().equals(memberId)){
-            throw new PlanAccessDeniedException();
-        }
-
-        return todo;
     }
 }

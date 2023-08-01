@@ -4,6 +4,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
+import todolist.domain.category.entity.Category;
+import todolist.domain.member.entity.Authority;
 import todolist.domain.member.entity.Member;
 import todolist.domain.todo.entity.Todo;
 import todolist.global.exception.buinessexception.planexception.PlanTimeValidException;
@@ -79,18 +81,21 @@ class DayPlanTest {
     }
 
     @Test
-    @DisplayName("content, date, startTime, endTime 을 인자로 받아 DayPlan 을 생성한다.")
+    @DisplayName("member, content, date, startTime, endTime, category 을 인자로 받아 DayPlan 을 생성한다.")
     void createDayPlan() {
         //given
+        Member member = createMember();
         String content = "test";
         LocalDate date = LocalDate.of(2023, 7, 20);
         LocalTime startTime = LocalTime.of(12, 0, 0);
         LocalTime endTime = LocalTime.of(12, 20, 0);
+        Category category = createCategory(member);
 
         //when
-        DayPlan dayPlan = DayPlan.createDayPlan(content, date, startTime, endTime);
+        DayPlan dayPlan = DayPlan.createDayPlan(member, category, content, date, startTime, endTime);
 
         //then
+        assertThat(dayPlan.getMember()).isEqualTo(member);
         assertThat(dayPlan.getContent()).isEqualTo(content);
         assertThat(dayPlan.getDate()).isEqualTo(date);
         assertThat(dayPlan.getStartTime()).isEqualTo(startTime);
@@ -101,14 +106,16 @@ class DayPlanTest {
     @DisplayName("DayPlan 생성 시 startTime 보다 endTime 이 빠르면 DayPlanTimeValidException 예외를 발생시킨다.")
     void createDayPlanException(){
         //given
+        Member member = createMember();
         String content = "test";
         LocalDate date = LocalDate.of(2023, 7, 20);
         LocalTime startTime = LocalTime.of(12, 20, 0);
         LocalTime endTime = LocalTime.of(12, 0, 0);
+        Category category = createCategory(member);
 
         //when //then
         PlanTimeValidException exception = assertThrows(PlanTimeValidException.class,
-                () -> DayPlan.createDayPlan(content, date, startTime, endTime));
+                () -> DayPlan.createDayPlan(member, category, content, date, startTime, endTime));
 
         assertThat(exception.getMessage()).isEqualTo(PlanTimeValidException.MESSAGE);
         assertThat(exception.getErrorCode()).isEqualTo(PlanTimeValidException.CODE);
@@ -236,6 +243,9 @@ class DayPlanTest {
         return Member.builder()
                 .name("test")
                 .username("test")
+                .email("email@test.com")
+                .password("1234abcd!")
+                .authority(Authority.ROLE_USER)
                 .build();
 
     }
@@ -274,6 +284,14 @@ class DayPlanTest {
                 .startDate(LocalDate.of(2023, 7, 20))
                 .deadLine(LocalDate.of(2023, 7, 21))
                 .doneDate(LocalDate.of(2023, 7, 21))
+                .build();
+    }
+
+    Category createCategory(Member member){
+        return Category.builder()
+                .categoryName("category")
+                .hexColor("#ffffff")
+                .member(member)
                 .build();
     }
 }

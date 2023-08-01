@@ -134,7 +134,11 @@ class TopListTest {
     }
 
     private Category createCategory(Member member) {
-        return Category.createCategory(member, "category name", "#FFFFFF");
+        return Category.builder()
+                .member(member)
+                .categoryName("category")
+                .hexColor("#ffffff")
+                .build();
     }
 
     Member createMember(){

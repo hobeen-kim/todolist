@@ -4,8 +4,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
+import todolist.domain.category.entity.Category;
 import todolist.domain.dayplan.entity.DayPlan;
+import todolist.domain.member.entity.Authority;
 import todolist.domain.member.entity.Member;
+import todolist.domain.toplist.entity.TopList;
 import todolist.global.exception.buinessexception.planexception.PlanDateValidException;
 
 import java.time.LocalDate;
@@ -34,6 +37,22 @@ class TodoTest {
         //then
         assertThat(todo.getMember()).isEqualTo(member);
         assertThat(member.getTodos()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("todo 에 TopList 를 추가한다.")
+    void addTopList() {
+        //given
+        Todo todo = createTodoDefault();
+        TopList topList = createTopList();
+
+        //when
+        todo.addTopList(topList);
+
+        //then
+        assertThat(todo.getTopList()).isEqualTo(topList);
+        assertThat(topList.getTodos()).hasSize(1);
+
     }
 
     @TestFactory
@@ -67,15 +86,19 @@ class TodoTest {
     @DisplayName("Todo 의 createTodo() 메서드로 Todo 를 생성한다.")
     void createTodo() {
         //given
+        Member member = createMember();
+        Category category = createCategory(member);
         String content = "test";
         Importance importance = RED;
         LocalDate startDate = LocalDate.of(2023, 7, 21);
         LocalDate deadline = LocalDate.of(2023, 7, 21);
 
         //when
-        Todo todo = Todo.createTodo(content, importance, startDate, deadline);
+        Todo todo = Todo.createTodo(member, category, content, importance, startDate, deadline);
 
         //then
+        assertThat(todo.getMember()).isEqualTo(member);
+        assertThat(todo.getCategory()).isEqualTo(category);
         assertThat(todo.getContent()).isEqualTo(content);
         assertThat(todo.getImportance()).isEqualTo(importance);
         assertThat(todo.getStartDate()).isEqualTo(startDate);
@@ -86,6 +109,8 @@ class TodoTest {
     @DisplayName("Todo 를 만들 때 startDate 보다 deadline 이 빠르면 TodoDateValidException 예외를 발생시킨다.")
     void createTodoException() {
         //given
+        Member member = createMember();
+        Category category = createCategory(member);
         String content = "test";
         Importance importance = RED;
         LocalDate startDate = LocalDate.of(2023, 7, 22);
@@ -93,7 +118,7 @@ class TodoTest {
 
         //when //then
         PlanDateValidException exception = assertThrows(PlanDateValidException.class,
-                ()->Todo.createTodo(content, importance, startDate, deadline));
+                ()->Todo.createTodo(member, category, content, importance, startDate, deadline));
 
         assertThat(exception.getMessage()).isEqualTo(PlanDateValidException.MESSAGE);
         assertThat(exception.getErrorCode()).isEqualTo(PlanDateValidException.CODE);
@@ -210,6 +235,24 @@ class TodoTest {
                 
     }
 
+    protected Member createMemberDefault() {
+        return Member.builder()
+                .name("test")
+                .username("test")
+                .password("1234abcd!")
+                .authority(Authority.ROLE_USER)
+                .email("email@test.com")
+                .build();
+    }
+
+    protected Category createCategory(Member member) {
+        return Category.builder()
+                .categoryName("category")
+                .hexColor("#FFFFFF")
+                .member(member)
+                .build();
+    }
+
     Todo createTodoDefault(){
         return Todo.builder()
                 .content("test")
@@ -234,6 +277,24 @@ class TodoTest {
                 .date(LocalDate.of(2023, 7, 20))
                 .startTime(LocalTime.of(12, 0, 0))
                 .endTime(LocalTime.of(12, 20, 0))
+                .build();
+    }
+
+    TopList createTopList(){
+        return TopList.builder()
+                .title("title")
+                .content("content")
+                .build();
+    }
+
+    protected Todo createTodo(Member member, Category category){
+        return Todo.builder()
+                .content("test")
+                .importance(RED)
+                .startDate(LocalDate.of(2023, 7, 20))
+                .deadLine(LocalDate.of(2023, 7, 21))
+                .member(member)
+                .category(category)
                 .build();
     }
 

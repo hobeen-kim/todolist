@@ -232,43 +232,4 @@ class CategoryServiceTest extends ServiceTest {
                 .email("email@test.com")
                 .build();
     }
-
-    Category createCategory(Member member){
-        return Category.builder()
-                .member(member)
-                .categoryName("category name")
-                .hexColor("#FFFFFF")
-                .build();
-    }
-
-    Todo createTodo(Member member, Category category){
-        return Todo.builder()
-                .member(member)
-                .category(category)
-                .content("test")
-                .importance(RED)
-                .startDate(LocalDate.of(2023, 7, 20))
-                .deadLine(LocalDate.of(2023, 7, 21))
-                .build();
-    }
-
-    TopList createTopList(Member member, Category category){
-        return TopList.builder()
-                .member(member)
-                .title("title")
-                .content("content")
-                .category(category)
-                .build();
-    }
-
-    DayPlan createDayPlan(Member member, Category category){
-        return DayPlan.builder()
-                .member(member)
-                .category(category)
-                .content("test")
-                .date(LocalDate.of(2023, 7, 20))
-                .startTime(LocalTime.of(12, 0, 0))
-                .endTime(LocalTime.of(12, 20, 0))
-                .build();
-    }
 }

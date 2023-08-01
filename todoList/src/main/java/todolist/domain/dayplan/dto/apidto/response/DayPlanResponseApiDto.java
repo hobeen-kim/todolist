@@ -18,6 +18,7 @@ public class DayPlanResponseApiDto {
     private String content;
     private boolean isDone;
     private Long todoId;
+    private Long categoryId;
 
     public static DayPlanResponseApiDto of(DayPlanResponseServiceDto dto){
 
@@ -28,6 +29,7 @@ public class DayPlanResponseApiDto {
                 dto.getEndTime(),
                 dto.getContent(),
                 dto.isDone(),
-                dto.getTodoId());
+                dto.getTodoId(),
+                dto.getCategoryId());
     }
 }

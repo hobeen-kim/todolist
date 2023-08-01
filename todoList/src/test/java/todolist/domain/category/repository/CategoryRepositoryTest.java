@@ -45,12 +45,4 @@ class CategoryRepositoryTest extends RepositoryTest {
                 .authority(Authority.ROLE_USER)
                 .build();
     }
-
-    Category createCategory(Member member){
-        return Category.builder()
-                .member(member)
-                .categoryName("category name")
-                .hexColor("#FFFFFF")
-                .build();
-    }
 }

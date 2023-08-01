@@ -19,12 +19,12 @@ public class CategoryRepositoryImpl implements CategoryRepositoryCustom {
     }
 
     @Override
-    public Optional<Category> findByIdWithMember(Long id) {
+    public Optional<Category> findByIdWithMember(Long categoryId) {
         return Optional.ofNullable(
                 queryFactory
                         .selectFrom(category)
                         .join(category.member).fetchJoin()
-                        .where(category.id.eq(id))
+                        .where(category.id.eq(categoryId))
                         .fetchOne()
         );
     }

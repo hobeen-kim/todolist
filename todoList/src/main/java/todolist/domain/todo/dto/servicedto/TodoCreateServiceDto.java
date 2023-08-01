@@ -17,4 +17,6 @@ public class TodoCreateServiceDto {
     private Importance importance;
     private LocalDate startDate;
     private LocalDate deadLine;
+    private Long topListId;
+    private Long categoryId;
 }

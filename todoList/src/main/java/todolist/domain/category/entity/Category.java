@@ -60,6 +60,10 @@ public class Category extends BaseEntity {
         this.dayPlans.add(dayPlan);
     }
 
+    public void addMember(Member member){
+        this.member = member;
+    }
+
     //==생성 메서드==//
     public static Category createCategory(Member member, String categoryName, String hexColor){
         return new Category(member, categoryName, hexColor);

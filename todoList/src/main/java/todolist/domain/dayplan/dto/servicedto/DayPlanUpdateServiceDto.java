@@ -18,5 +18,6 @@ public class DayPlanUpdateServiceDto {
     private Long todoId;
     //todo 와 연관관계를 끊으려면 false 를 주면 된다.
     private Boolean deleteTodo;
+    private Long categoryId;
 
 }

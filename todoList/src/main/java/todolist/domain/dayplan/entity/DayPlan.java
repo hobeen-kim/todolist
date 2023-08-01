@@ -23,10 +23,13 @@ public class DayPlan extends PlanEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private LocalDate date;
 
+    @Column(nullable = false)
     private LocalTime startTime;
 
+    @Column(nullable = false)
     private LocalTime endTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -37,13 +40,6 @@ public class DayPlan extends PlanEntity {
     private DayPlan(Member member, Category category, String content, LocalDate date, LocalTime startTime, LocalTime endTime) {
         this.member = member;
         this.category = category;
-        this.content = content;
-        this.date = date;
-        this.startTime = startTime;
-        this.endTime = endTime;
-    }
-
-    private DayPlan(String content, LocalDate date, LocalTime startTime, LocalTime endTime) {
         this.content = content;
         this.date = date;
         this.startTime = startTime;
@@ -66,18 +62,18 @@ public class DayPlan extends PlanEntity {
         this.todo = null;
     }
 
-    public void addCategory(Category category){
+    public void changeCategory(Category category) {
         this.category = category;
         category.addDayPlan(this);
     }
 
 
     //==생성 메서드==//
-    public static DayPlan createDayPlan(String content, LocalDate date, LocalTime startTime, LocalTime endTime) {
+    public static DayPlan createDayPlan(Member member, Category category, String content, LocalDate date, LocalTime startTime, LocalTime endTime) {
 
         validateDate(startTime, endTime);
 
-        return new DayPlan(content, date, startTime, endTime);
+        return new DayPlan(member, category, content, date, startTime, endTime);
     }
 
     //==비즈니스 로직==//

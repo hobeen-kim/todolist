@@ -20,11 +20,11 @@ public abstract class PlanEntity extends BaseEntity{
     protected boolean isDone = false;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", nullable = false)
     protected Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "category_id", nullable = false)
     protected Category category;
 
     /**
@@ -34,6 +34,8 @@ public abstract class PlanEntity extends BaseEntity{
     public void addMember(Member member) {
         this.member = member;
     }
+
+    public abstract void changeCategory(Category category);
 
 
 }

@@ -95,7 +95,8 @@ class DayPlanControllerTest extends ControllerTest {
                                 fieldWithPath("data.dayPlans[].startTime").type(STRING).description("일정 시작 시간"),
                                 fieldWithPath("data.dayPlans[].endTime").type(STRING).description("일정 종료 시간"),
                                 fieldWithPath("data.dayPlans[].done").type(BOOLEAN).description("일정 완료 여부"),
-                                fieldWithPath("data.dayPlans[].todoId").type(NUMBER).description("일정에 연결된 todo id")
+                                fieldWithPath("data.dayPlans[].todoId").type(NUMBER).description("일정에 연결된 todo id"),
+                                fieldWithPath("data.dayPlans[].categoryId").type(NUMBER).description("일정의 카테고리")
                         )
                 ));
     }
@@ -113,6 +114,7 @@ class DayPlanControllerTest extends ControllerTest {
                 .startTime(LocalTime.of(12, 0, 0))
                 .endTime(LocalTime.of(12, 20, 0))
                 .todoId(1L)
+                .categoryId(1L)
                 .build();
 
         String content = objectMapper.writeValueAsString(dto);
@@ -150,6 +152,9 @@ class DayPlanControllerTest extends ControllerTest {
                                 fieldWithPath("endTime").type(STRING).description("일정 종료 시간")
                                         .attributes(getConstraint("endTime")),
                                 fieldWithPath("todoId").type(NUMBER).description("일정에 연결된 todo id").optional()
+                                        .attributes(getConstraint("todoId")),
+                                fieldWithPath("categoryId").type(NUMBER).description("일정의 카테고리")
+                                        .attributes(getConstraint("categoryId"))
                         )
                 ));
 
@@ -167,6 +172,7 @@ class DayPlanControllerTest extends ControllerTest {
                 .endTime(LocalTime.of(12, 20, 0))
                 .isDone(true)
                 .todoId(1L)
+                .categoryId(1L)
                 .build();
 
         String content = objectMapper.writeValueAsString(dto);
@@ -204,7 +210,8 @@ class DayPlanControllerTest extends ControllerTest {
                                 fieldWithPath("endTime").type(STRING).description("일정 종료 시간").optional(),
                                 fieldWithPath("isDone").type(BOOLEAN).description("일정 종료 시간").optional(),
                                 fieldWithPath("todoId").type(NUMBER).description("일정에 연결할 todo id").optional(),
-                                fieldWithPath("deleteTodo").type(BOOLEAN).description("false 를 주면 todo 와 연결이 끊김").optional()
+                                fieldWithPath("deleteTodo").type(BOOLEAN).description("false 를 주면 todo 와 연결이 끊김").optional(),
+                                fieldWithPath("categoryId").type(NUMBER).description("일정의 카테고리").optional()
                         )
                 ));
     }
@@ -261,6 +268,7 @@ class DayPlanControllerTest extends ControllerTest {
                             .date(LocalDate.of(2023, 7, 20))
                             .startTime(LocalTime.of(12, 0, 0))
                             .endTime(LocalTime.of(12, 20, 0))
+                            .categoryId(1L)
                             .build();
 
                     String content = objectMapper.writeValueAsString(dto);
@@ -283,6 +291,7 @@ class DayPlanControllerTest extends ControllerTest {
                             .date(LocalDate.of(2023, 7, 20))
                             .startTime(LocalTime.of(12, 0, 0))
                             .endTime(LocalTime.of(12, 20, 0))
+                            .categoryId(1L)
                             .build();
 
                     String content = objectMapper.writeValueAsString(dto);
@@ -305,6 +314,7 @@ class DayPlanControllerTest extends ControllerTest {
                             .date(null)
                             .startTime(LocalTime.of(12, 0, 0))
                             .endTime(LocalTime.of(12, 20, 0))
+                            .categoryId(1L)
                             .build();
 
                     String content = objectMapper.writeValueAsString(dto);
@@ -327,6 +337,7 @@ class DayPlanControllerTest extends ControllerTest {
                             .date(LocalDate.of(2023, 7, 20))
                             .startTime(null)
                             .endTime(LocalTime.of(12, 20, 0))
+                            .categoryId(1L)
                             .build();
 
                     String content = objectMapper.writeValueAsString(dto);
@@ -349,6 +360,7 @@ class DayPlanControllerTest extends ControllerTest {
                             .date(LocalDate.of(2023, 7, 20))
                             .startTime(LocalTime.of(12, 0, 0))
                             .endTime(null)
+                            .categoryId(1L)
                             .build();
 
                     String content = objectMapper.writeValueAsString(dto);
@@ -362,6 +374,28 @@ class DayPlanControllerTest extends ControllerTest {
                             .andDo(print())
                             .andExpect(status().isBadRequest())
                             .andExpect(jsonPath("$.data[0].reason").value("시간을 입력해주세요."));
+                }),
+                dynamicTest("categoryId 가 null 일 때", () ->{
+                    //given
+                    //생성 api request dto
+                    DayPlanCreateApiDto dto = DayPlanCreateApiDto.builder()
+                            .content("content")
+                            .date(LocalDate.of(2023, 7, 20))
+                            .startTime(LocalTime.of(12, 0, 0))
+                            .endTime(LocalTime.of(12, 10, 0))
+                            .build();
+
+                    String content = objectMapper.writeValueAsString(dto);
+
+                    //when
+                    ResultActions actions = mockMvc.perform(postBuilder(withDefaultUrl(), content)
+                            .header(AUTHORIZATION, getAuthorizationToken()));
+
+                    //then
+                    actions
+                            .andDo(print())
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.data[0].reason").value("카테고리를 선택해주세요."));
                 })
         );
     }
@@ -378,6 +412,7 @@ class DayPlanControllerTest extends ControllerTest {
                 .endTime(LocalTime.of(12, 20, 0))
                 .isDone(true)
                 .todoId(1L)
+                .categoryId(1L)
                 .build();
 
         String content = objectMapper.writeValueAsString(dto);
@@ -417,6 +452,7 @@ class DayPlanControllerTest extends ControllerTest {
                 .endTime(LocalTime.of(12, 20, 0))
                 .isDone(false)
                 .todoId(dayPlanId) //todoId 와 dayPlanId 은 테스트 상 같게 설정
+                .categoryId(dayPlanId) //categoryId 와 dayPlanId 은 테스트 상 같게 설정
                 .build();
 
     }

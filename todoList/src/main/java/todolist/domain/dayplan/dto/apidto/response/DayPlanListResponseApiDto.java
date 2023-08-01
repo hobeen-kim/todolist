@@ -8,6 +8,7 @@ import todolist.global.reponse.PageInfo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Getter
@@ -21,10 +22,10 @@ public class DayPlanListResponseApiDto {
     }
 
     public static DayPlanListResponseApiDto of(List<DayPlanResponseServiceDto> dayplans){
-        List<DayPlanResponseApiDto> dtos = new ArrayList<>();
-        for(DayPlanResponseServiceDto dayplan : dayplans){
-            dtos.add(DayPlanResponseApiDto.of(dayplan));
-        }
+
+        List<DayPlanResponseApiDto> dtos = dayplans.stream()
+                .map(DayPlanResponseApiDto::of)
+                .collect(Collectors.toList());
 
         return new DayPlanListResponseApiDto(dtos, null);
     }
