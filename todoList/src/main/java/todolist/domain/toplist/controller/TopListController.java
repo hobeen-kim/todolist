@@ -27,13 +27,17 @@ public class TopListController {
     private static final String BASE_URL = "/v1/api/toplist";
 
     @GetMapping
-    public ResponseEntity<ApiResponse<TopListListResponseApiDto>> getTopList(LocalDate from, LocalDate to, Boolean isDone) {
+    public ResponseEntity<ApiResponse<TopListListResponseApiDto>> getTopList(Long categoryId,
+                                                                             @RequestParam(required = false) LocalDate from,
+                                                                             @RequestParam(required = false) LocalDate to,
+                                                                             @RequestParam(required = false) Boolean isDone) {
 
         Long memberId = SecurityUtil.getCurrentId();
         TopListSearchCond searchCond = TopListSearchCond.builder()
                 .from(from)
                 .to(to)
                 .isDone(isDone)
+                .categoryId(categoryId)
                 .build();
 
         List<TopListResponseServiceDto> serviceResponse = topListService.findTopLists(memberId, searchCond);

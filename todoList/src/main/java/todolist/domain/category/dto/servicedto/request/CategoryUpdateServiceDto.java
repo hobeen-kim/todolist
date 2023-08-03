@@ -1,4 +1,4 @@
-package todolist.domain.category.dto.servicedto;
+package todolist.domain.category.dto.servicedto.request;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

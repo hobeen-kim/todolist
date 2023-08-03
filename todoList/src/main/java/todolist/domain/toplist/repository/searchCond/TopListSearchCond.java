@@ -15,4 +15,5 @@ public class TopListSearchCond {
     private LocalDate from;
     private LocalDate to;
     private boolean isDone;
+    private Long categoryId;
 }

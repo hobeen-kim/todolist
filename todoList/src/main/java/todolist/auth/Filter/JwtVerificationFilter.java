@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
+import todolist.auth.service.CustomUserDetails;
 import todolist.auth.service.TokenProvider;
 import todolist.global.exception.buinessexception.BusinessException;
 
@@ -69,7 +70,7 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
 
         Collection<? extends GrantedAuthority> authorities = getRoles(claims);
 
-        UserDetails principal = new User(claims.getSubject(), "", authorities);
+        CustomUserDetails principal = new CustomUserDetails(claims.get(ID_KEY, Long.class), claims.getSubject(), "", authorities);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, authorities);
 

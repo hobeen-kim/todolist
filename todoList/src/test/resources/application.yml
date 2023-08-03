@@ -1,0 +1,28 @@
+
+
+#logging:
+#    level:
+#        org.hibernate.SQL: DEBUG
+#        org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
+
+jwt:
+  secret-key: "fasdfasasdflknewqiofdsalkfnqwouie234231412fkdsjafbeuwqpfbdsadflfbasfklwuiqefblskf34214asdkljfbsaldrasdrkljfb"
+  access-token-expire-time: 1000 * 60 * 60 * 2
+  refresh-token-expire-time: 1000 * 60 * 60 * 24 * 7
+
+spring:
+  profiles:
+    active: test
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create
+      batch_size: 100

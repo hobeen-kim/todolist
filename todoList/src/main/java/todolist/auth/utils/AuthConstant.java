@@ -1,7 +1,9 @@
 package todolist.auth.utils;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 
+@Configuration
 public class AuthConstant {
 
     public static final String AUTHORIZATION = "Authorization";
@@ -15,8 +17,16 @@ public class AuthConstant {
     public static final String ID_KEY = "id";
     public static final String BUSINESS_EXCEPTION = "businessException";
     public static final String EXCEPTION = "exception";
-    @Value("${jwt.access-token-expire-time}")
     public static long ACCESS_TOKEN_EXPIRE_TIME;
-    @Value("${jwt.refresh-token-expire-time}")
     public static long REFRESH_TOKEN_EXPIRE_TIME;
+
+    @Value("${jwt.access-token-expire-time}")
+    public void setAccessTokenExpireTime(long value) {
+        ACCESS_TOKEN_EXPIRE_TIME = value;
+    }
+
+    @Value("${jwt.refresh-token-expire-time}")
+    public void setRefreshTokenExpireTime(long value) {
+        REFRESH_TOKEN_EXPIRE_TIME = value;
+    }
 }

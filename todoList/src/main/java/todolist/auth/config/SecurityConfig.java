@@ -3,6 +3,7 @@ package todolist.auth.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -22,6 +23,8 @@ import todolist.auth.Filter.JwtVerificationFilter;
 import todolist.auth.handler.*;
 import todolist.auth.service.TokenProvider;
 import todolist.domain.member.controller.MemberController;
+
+import java.util.List;
 
 import static todolist.auth.utils.AuthConstant.Auth_PATH;
 import static todolist.auth.utils.AuthConstant.LOGIN_PATH;
@@ -56,6 +59,7 @@ public class SecurityConfig {
                         authorizeRequests -> authorizeRequests
                                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                                 .requestMatchers(Auth_PATH + "/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, MemberController.MEMBER_URL).permitAll()
                                 .requestMatchers(MemberController.MEMBER_URL + "authority/**").hasRole("ADMIN")
                                 .anyRequest().authenticated())
                 .apply(new CustomFilterConfigurer())
@@ -68,9 +72,11 @@ public class SecurityConfig {
 
         CorsConfiguration config = new CorsConfiguration();
 
-        config.addAllowedOrigin("*");
+        config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedMethod("*");
+        config.setAllowCredentials(true);
         config.addAllowedHeader("*");
+        config.setExposedHeaders(List.of("Authorization", "Refresh", "Location"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

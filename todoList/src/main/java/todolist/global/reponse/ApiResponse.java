@@ -7,6 +7,7 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import todolist.global.exception.buinessexception.BusinessException;
 import org.hibernate.validator.internal.engine.path.PathImpl;
@@ -62,6 +63,15 @@ public class ApiResponse<T> {
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.name(),
                 "입력 값을 확인해주세요."
+        );
+    }
+
+    public static ApiResponse<Void> fail(HttpRequestMethodNotSupportedException exception) {
+        return new ApiResponse<>(
+                null,
+                HttpStatus.METHOD_NOT_ALLOWED.value(),
+                HttpStatus.METHOD_NOT_ALLOWED.name(),
+                "요청 url 과 method 를 확인해주세요."
         );
     }
 

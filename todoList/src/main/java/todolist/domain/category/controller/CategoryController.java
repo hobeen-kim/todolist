@@ -7,13 +7,16 @@ import org.springframework.web.bind.annotation.*;
 import todolist.auth.utils.SecurityUtil;
 import todolist.domain.category.dto.apidto.request.CategoryCreateApiDto;
 import todolist.domain.category.dto.apidto.request.CategoryUpdateApiDto;
+import todolist.domain.category.dto.apidto.response.CategoryInfoResponseApiDto;
 import todolist.domain.category.dto.apidto.response.CategoryResponseApiDto;
-import todolist.domain.category.dto.servicedto.CategoryResponseServiceDto;
+import todolist.domain.category.dto.servicedto.response.CategoryInfoResponseServiceDto;
+import todolist.domain.category.dto.servicedto.response.CategoryResponseServiceDto;
 import todolist.domain.category.service.CategoryService;
 import todolist.global.reponse.ApiResponse;
 
 import java.net.URI;
 import java.time.LocalDate;
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -22,6 +25,18 @@ public class CategoryController {
 
     private final CategoryService categoryService;
     private static final String BASE_URL = "/v1/api/categories";
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<CategoryInfoResponseApiDto>>> getCategories(){
+
+        Long memberId = SecurityUtil.getCurrentId();
+
+        List<CategoryInfoResponseServiceDto> serviceResponse = categoryService.getCategories(memberId);
+
+        List<CategoryInfoResponseApiDto> apiDto = CategoryInfoResponseApiDto.of(serviceResponse);
+
+        return ResponseEntity.ok(ApiResponse.ok(apiDto));
+    }
 
     @GetMapping("/{categoryId}")
     public ResponseEntity<ApiResponse<CategoryResponseApiDto>> getCategory(@PathVariable Long categoryId){

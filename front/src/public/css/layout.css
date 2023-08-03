@@ -1,0 +1,11 @@
+.navigation {
+    margin-top: 3rem;
+    height: 100%;
+}
+
+.main {
+    background-color: rgb(1,1,1);
+    height: calc(100vh - 3rem);
+    padding: 1rem;
+
+}

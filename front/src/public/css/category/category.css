@@ -1,0 +1,14 @@
+.category-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.category-container__item {
+    background-color: rgb(27,27,27);
+    border-radius: 1rem;
+    padding: 0.7rem 2rem;
+}
+
+
+  

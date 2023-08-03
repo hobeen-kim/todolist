@@ -57,8 +57,6 @@ public class TodoService {
                 dto.getDeadLine()
         );
 
-        addTodoToMember(memberId, todo);
-
         if(dto.getTopListId() != null){
             addTodoToTopList(memberId, dto.getTopListId(), todo);
         }
@@ -139,11 +137,6 @@ public class TodoService {
         }
 
         return todo;
-    }
-
-    private void addTodoToMember(Long memberId, Todo todo) {
-        Member member = verifiedMember(memberId);
-        member.addTodos(todo);
     }
 
     private void addTodoToTopList(Long memberId, Long topListId, Todo todo) {

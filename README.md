@@ -42,3 +42,14 @@ feat: 검색 기능 추가
 | remove           | 파일을 삭제하는 작업만 수행한 경우                           |
 | !BREAKING CHANGE | 커다란 API 변경의 경우                                       |
 | !HOTFIX          | 급하게 치명적인 버그를 고쳐야하는 경우                       |
+
+
+
+1. API validtation 과 Service Validation 구분
+2. 테스트의 문서화가 잘 되었는가
+3. 삭제 시 bulk 연산이 필요한가? (cascade 가 적절한가)
+4. 연관관계가 적절한가 (단방향, 양방향) / 연관관계 메서드의 설정은 적절한가
+5. todo, dayplan 도 바로 category, member 를 받아서 만들기 (생성자에 포함)
+6. verifiedTopList 조회... 문제.. public 으로 열어도 되나
+7. 테스트 시 객체 만드는 메서드 통일
+8. 큰 문제점 ! : 필드나 제약사항을 추가할 때마다 테스트 20% 이상이 깨짐

@@ -3,7 +3,7 @@ package todolist.domain.category.dto.apidto.request;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import todolist.domain.category.dto.servicedto.CategoryCreateServiceDto;
+import todolist.domain.category.dto.servicedto.request.CategoryCreateServiceDto;
 
 @AllArgsConstructor
 @Getter

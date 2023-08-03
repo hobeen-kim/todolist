@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -51,8 +52,16 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ApiResponse.fail(e), e.getHttpStatus());
     }
 
+    //잘못된 메서드 요청
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
+
+        return new ResponseEntity<>(ApiResponse.fail(e), HttpStatusCode.valueOf(405));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<BindingResult>> handleException(Exception e) {
+
 
         e.printStackTrace();
 

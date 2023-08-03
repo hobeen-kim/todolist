@@ -1,14 +1,12 @@
 package todolist.domain.category.service;
 
-import org.assertj.core.api.AbstractThrowableAssert;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import todolist.domain.category.dto.servicedto.CategoryCreateServiceDto;
-import todolist.domain.category.dto.servicedto.CategoryUpdateServiceDto;
+import todolist.domain.category.dto.servicedto.request.CategoryCreateServiceDto;
+import todolist.domain.category.dto.servicedto.request.CategoryUpdateServiceDto;
 import todolist.domain.category.entity.Category;
 import todolist.domain.category.repository.CategoryRepository;
 import todolist.domain.dayplan.entity.DayPlan;
@@ -21,13 +19,10 @@ import todolist.global.exception.buinessexception.categoryexception.CategoryAcce
 import todolist.global.exception.buinessexception.categoryexception.CategoryNotFoundException;
 import todolist.global.testHelper.ServiceTest;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
-import static todolist.domain.todo.entity.Importance.RED;
 
 class CategoryServiceTest extends ServiceTest {
 

@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import static todolist.domain.category.entity.QCategory.category;
 import static todolist.domain.toplist.entity.QTopList.topList;
 
 public class TopListRepositoryImpl implements TopListRepositoryCustom{
@@ -44,7 +45,7 @@ public class TopListRepositoryImpl implements TopListRepositoryCustom{
         return queryFactory
                 .selectFrom(topList)
                 .join(topList.member).fetchJoin()
-                .join(topList.category).fetchJoin()
+                .join(topList.category, category).on(topList.category.id.eq(cond.getCategoryId()))
                 .leftJoin(topList.todos).fetchJoin()
                 .where(topList.member.id.eq(memberId))
                 .where(getCond(cond.getFrom(), cond.getTo(), cond.isDone()))
