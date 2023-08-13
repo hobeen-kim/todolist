@@ -40,13 +40,14 @@ public class TodoController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<TodoListResponseApiDto>> getTodos(
+            Long categoryId,
             LocalDate from,
             LocalDate to,
             @NotNull(message = "{validation.searchType}") SearchType searchType){
 
         Long memberId = SecurityUtil.getCurrentId();
 
-        List<TodoResponseServiceDto> todoList = todoService.findTodoList(memberId, from, to, searchType);
+        List<TodoResponseServiceDto> todoList = todoService.findTodoList(memberId, categoryId, from, to, searchType);
 
         ApiResponse<TodoListResponseApiDto> response = buildApiOkResponse(todoList);
 

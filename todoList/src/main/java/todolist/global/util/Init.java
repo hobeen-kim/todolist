@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import todolist.domain.category.entity.Category;
 import todolist.domain.dayplan.entity.DayPlan;
@@ -19,7 +20,7 @@ import todolist.domain.toplist.entity.TopList;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-@Component
+//@Component
 @RequiredArgsConstructor
 public class Init {
 
@@ -30,7 +31,7 @@ public class Init {
         initService.init();
     }
 
-    @Component
+//    @Component
     @RequiredArgsConstructor
     static class InitService{
 

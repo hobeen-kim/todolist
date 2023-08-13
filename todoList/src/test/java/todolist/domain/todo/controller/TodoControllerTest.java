@@ -56,7 +56,7 @@ class TodoControllerTest extends ControllerTest {
         List<TodoResponseServiceDto> serviceDto =
                 createTodoResponseServiceDtos(LocalDate.of(2023, 3, 1), 10);
 
-        given(todoService.findTodoList(anyLong(), any(LocalDate.class), any(LocalDate.class), any(SearchType.class)))
+        given(todoService.findTodoList(anyLong(), anyLong(), any(LocalDate.class), any(LocalDate.class), any(SearchType.class)))
                 .willReturn(serviceDto);
 
 
@@ -68,6 +68,7 @@ class TodoControllerTest extends ControllerTest {
         LocalDate from = LocalDate.of(2023, 3, 1);
         LocalDate to = LocalDate.of(2023, 3, 10);
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("categoryId", "1");
         params.add("from", from.toString());
         params.add("to", to.toString());
         params.add("searchType", "START_DATE");
@@ -92,6 +93,7 @@ class TodoControllerTest extends ControllerTest {
                 .andDo(documentHandler.document(
                         getTokenRequestHeader(),
                         queryParameters(
+                                parameterWithName("categoryId").description("카테고리 id"),
                                 parameterWithName("from").description("검색 시작 날짜"),
                                 parameterWithName("to").description("검색 종료 날짜"),
                                 parameterWithName("searchType").description(generateLinkCode(SearchType.class))

@@ -23,6 +23,7 @@ import static todolist.domain.todo.entity.Importance.RED;
 @Transactional
 public abstract class ServiceTest {
 
+
     @Autowired protected EntityManager em;
 
     protected Member createMemberDefault() {

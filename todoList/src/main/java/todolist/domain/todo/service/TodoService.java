@@ -95,6 +95,14 @@ public class TodoService {
         return TodoResponseServiceDto.of(todos);
     }
 
+    public List<TodoResponseServiceDto> findTodoList(Long memberId, Long categoryId, LocalDate from, LocalDate to, SearchType searchType) {
+
+        DateTypeSearchCond cond = new DateTypeSearchCond(from, to, searchType);
+
+        List<Todo> todos = todoRepository.findByCond(memberId, categoryId, cond);
+        return TodoResponseServiceDto.of(todos);
+    }
+
     /**
      * dto 로 받은 정보로 Todo 를 수정합니다.
      * @param memberId 스레드로컬 Member 의 id

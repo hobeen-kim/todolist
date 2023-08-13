@@ -133,7 +133,7 @@ class TodoRepositoryTest extends RepositoryTest {
                         .extracting("doneDate")
                         .isEqualTo(LocalDate.of(2023, 3, 31));
             }),
-            dynamicTest("검색 조건에 날짜가 없으면 모두 검색한다.", () -> {
+            dynamicTest("검색 조건에 날짜가 없으면 완료되지 않은 todo 를 모두 검색한다.", () -> {
                 //given
                 DateTypeSearchCond cond = DateTypeSearchCond.builder()
                         .searchType(SearchType.DONE_DATE)
@@ -145,9 +145,8 @@ class TodoRepositoryTest extends RepositoryTest {
                 List<Todo> findTodos = todoRepository.findByCond(member.getId(), cond);
 
                 //then
-                assertThat(findTodos).hasSize(50);
+                assertThat(findTodos).hasSize(0);
             })
-
         );
 
     }

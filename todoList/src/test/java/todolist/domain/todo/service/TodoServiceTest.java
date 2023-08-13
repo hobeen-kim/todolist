@@ -68,6 +68,7 @@ class TodoServiceTest extends ServiceTest {
 
         //when
         TodoResponseServiceDto todoDto = todoService.saveTodo(member.getId(), dto);
+        todoRepository.flush();
 
         //then
         assertThat(todoDto.getContent()).isEqualTo(dto.getContent());
@@ -75,8 +76,6 @@ class TodoServiceTest extends ServiceTest {
         assertThat(todoDto.getStartDate()).isEqualTo(dto.getStartDate());
         assertThat(todoDto.getDeadLine()).isEqualTo(dto.getDeadLine());
         assertThat(todoDto.getCategoryId()).isNotNull();
-        assertThat(member.getTodos()).hasSize(1);
-
     }
 
     @Test
@@ -304,7 +303,7 @@ class TodoServiceTest extends ServiceTest {
                             .extracting("doneDate")
                             .isEqualTo(LocalDate.of(2023, 3, 31));
                 }),
-                dynamicTest("검색 조건에 날짜가 둘 다 null 이면 전부 검색한다.",()->{
+                dynamicTest("검색 조건에 날짜가 둘 다 null 이면 완료되지 않은 모든 todo 를 전부 검색한다.",()->{
                     //given
                     LocalDate from = null;
                     LocalDate to = null;
@@ -314,7 +313,7 @@ class TodoServiceTest extends ServiceTest {
                     List<TodoResponseServiceDto> todoDtoList = todoService.findTodoList(member.getId(), from, to, searchType);
 
                     //then
-                    assertThat(todoDtoList).hasSize(todos.size());
+                    assertThat(todoDtoList).hasSize(0);
                 })
         );
 

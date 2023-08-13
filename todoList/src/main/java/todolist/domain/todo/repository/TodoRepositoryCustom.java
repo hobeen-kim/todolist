@@ -12,4 +12,6 @@ public interface TodoRepositoryCustom {
     Optional<Todo> findByIdWithMember(Long id);
 
     List<Todo> findByCond(Long memberId, DateTypeSearchCond cond);
+
+    List<Todo> findByCond(Long memberId, Long categoryId, DateTypeSearchCond cond);
 }

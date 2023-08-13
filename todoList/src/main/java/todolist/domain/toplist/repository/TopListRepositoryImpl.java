@@ -45,9 +45,10 @@ public class TopListRepositoryImpl implements TopListRepositoryCustom{
         return queryFactory
                 .selectFrom(topList)
                 .join(topList.member).fetchJoin()
-                .join(topList.category, category).on(topList.category.id.eq(cond.getCategoryId()))
+                .join(topList.category).fetchJoin()
                 .leftJoin(topList.todos).fetchJoin()
                 .where(topList.member.id.eq(memberId))
+                .where(topList.category.id.eq(cond.getCategoryId()))
                 .where(getCond(cond.getFrom(), cond.getTo(), cond.isDone()))
                 .fetch();
     }

@@ -9,7 +9,6 @@ import todolist.domain.toplist.entity.Status;
 @Getter
 public class TopListUpdateApiDto {
 
-    private Long id;
     private String title;
     private String content;
     private Long categoryId;

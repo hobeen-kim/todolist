@@ -79,6 +79,7 @@ class TopListServiceTest extends ServiceTest {
 
         TopListSearchCond cond = TopListSearchCond.builder() //전체 조회
                 .isDone(true)
+                .categoryId(category.getId())
                 .build();
 
         //when

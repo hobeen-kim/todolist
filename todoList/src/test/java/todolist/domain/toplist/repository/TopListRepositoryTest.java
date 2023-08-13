@@ -64,6 +64,7 @@ class TopListRepositoryTest extends RepositoryTest {
 
         em.persist(category);
         em.persist(member);
+        topLists.forEach(em::persist);
 
         em.flush();
         em.clear();
@@ -74,7 +75,8 @@ class TopListRepositoryTest extends RepositoryTest {
                     TopListSearchCond cond = new TopListSearchCond(
                             null,
                             null,
-                            false
+                            false,
+                            category.getId()
                     );
 
                     //when
@@ -97,7 +99,8 @@ class TopListRepositoryTest extends RepositoryTest {
                     TopListSearchCond cond = new TopListSearchCond(
                             null,
                             null,
-                            true
+                            true,
+                            category.getId()
                     );
 
                     //when
@@ -116,7 +119,8 @@ class TopListRepositoryTest extends RepositoryTest {
                     TopListSearchCond cond = new TopListSearchCond( //doneDate 를 기준으로 검색
                             doneDate.plusDays(8),
                             doneDate.plusDays(10),
-                            true
+                            true,
+                            category.getId()
                     );
 
                     //when

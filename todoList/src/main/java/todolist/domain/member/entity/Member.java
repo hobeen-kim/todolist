@@ -99,7 +99,6 @@ public class Member extends BaseEntity {
     }
 
     //==비즈니스 메서드==//
-
     public void changeAuthority(Authority authority) {
         this.authority = authority;
     }

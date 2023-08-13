@@ -24,6 +24,7 @@ public class TopList extends PlanEntity {
 
     private String title;
 
+    @Enumerated(EnumType.STRING)
     private Status status = Status.NOT_STARTED;
 
     private LocalDate doneDate;

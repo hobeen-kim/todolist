@@ -46,10 +46,23 @@ public class TodoRepositoryImpl implements TodoRepositoryCustom{
                 .fetch();
     }
 
+    @Override
+    public List<Todo> findByCond(Long memberId, Long categoryId, DateTypeSearchCond cond) {
+
+        return queryFactory
+                .selectFrom(todo)
+                .join(todo.member).fetchJoin()
+                .leftJoin(todo.dayPlans).fetchJoin()
+                .where(todo.member.id.eq(memberId))
+                .where(todo.category.id.eq(categoryId))
+                .where(getBetween(cond.getFrom(), cond.getTo(), cond.getSearchType()))
+                .fetch();
+    }
+
     private BooleanExpression getBetween(LocalDate from, LocalDate to, SearchType searchType) {
 
         if(from == null && to == null){
-            return null;
+            return todo.isDone.eq(false);
         }
         if(searchType.equals(START_DATE)){
             return todo.startDate.between(from, to);

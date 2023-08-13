@@ -79,7 +79,6 @@ public class CategoryService {
 
         Category category = verifiedCategory(memberId, categoryId);
 
-
         return CategoryResponseServiceDto.of(category);
     }
 

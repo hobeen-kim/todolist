@@ -28,6 +28,7 @@ public class TopListService {
     private final CustomUserDetailsService userDetailsService;
     private final CategoryService categoryService;
 
+    @Transactional
     public Long saveTopList(Long memberId, TopListCreateServiceDto dto) {
 
         Member member = verifiedMember(memberId);
@@ -51,6 +52,7 @@ public class TopListService {
         return TopListResponseServiceDto.of(topLists);
     }
 
+    @Transactional
     public void updateTopList(Long memberId, TopListUpdateServiceDto dto) {
 
         TopList topList = verifiedTopList(memberId, dto.getId());
@@ -58,6 +60,7 @@ public class TopListService {
         update(topList, dto);
     }
 
+    @Transactional
     public void deleteTopList(Long memberId, Long topListId) {
 
         //todo : 조회 쿼리문 없이 바로 삭제해도 될 듯

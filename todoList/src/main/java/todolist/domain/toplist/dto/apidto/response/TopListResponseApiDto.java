@@ -18,7 +18,7 @@ public class TopListResponseApiDto {
     private Status status;
     private LocalDate doneDate;
     private boolean isDone;
-    private Long CategoryId;
+    private Long categoryId;
     private List<TopListResponseServiceDto.TodoSummary> todos;
 
     public static TopListResponseApiDto of(TopListResponseServiceDto dto) {

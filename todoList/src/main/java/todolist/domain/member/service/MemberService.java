@@ -142,6 +142,7 @@ public class MemberService {
     private void checkAdmin(Long adminId) {
 
         if(!isAdmin(adminId)) throw new MemberAccessDeniedException();
+
     }
 
     private Member findMemberById(Long id) {

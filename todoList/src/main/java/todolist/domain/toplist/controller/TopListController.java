@@ -53,14 +53,14 @@ public class TopListController {
         Long memberId = SecurityUtil.getCurrentId();
         Long topList = topListService.saveTopList(memberId, dto.toServiceDto());
 
-        //todo : 필요없는 uri, 이걸 사용할지 고민해보자 (일단 사용 x)
+        //todo : 필요없는 uri, 이걸 사용할지 고민해보자 (일단 사용 x) -> topList 의 id 는 줘야함
         URI uri = URI.create(BASE_URL + "/" + topList);
 
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return ResponseEntity.created(uri).build();
     }
 
     @PatchMapping("/{topListId}")
-    public ResponseEntity<Void> patchTopList(@PathVariable Long topListId, @Valid TopListUpdateApiDto dto) {
+    public ResponseEntity<Void> patchTopList(@PathVariable Long topListId, @RequestBody @Valid TopListUpdateApiDto dto) {
 
         Long memberId = SecurityUtil.getCurrentId();
 
