@@ -39,7 +39,7 @@ const AuthHome = () => {
             환영합니다!
           </Typography>
               <Button
-                onClick={() => navigate('/login')}
+                onClick={() => navigate('/auth/login')}
                 fullWidth
                 variant="contained"
                 sx={{ mt: 3, mb: 2 }}
@@ -48,7 +48,7 @@ const AuthHome = () => {
                 로그인
               </Button>
               <Button
-                onClick={() => navigate('/signUp')}
+                onClick={() => navigate('/auth/signUp')}
                 fullWidth
                 variant="contained"
                 sx={{ mt: 1, mb: 2 }}

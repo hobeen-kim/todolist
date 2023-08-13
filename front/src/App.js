@@ -22,7 +22,8 @@ function App() {
     <>
     <Routes>
       {/* <Route path="/*" element={authCtx.isLoggedIn ? <Main /> : <AuthPage/>} /> */}
-      <Route path="/*" element={ <Main /> } />
+      <Route path="/categories/*" element={ <Main /> } />
+      <Route path="/auth/*" element={ <AuthPage /> } />
     </Routes>
     </>
   );

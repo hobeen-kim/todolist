@@ -9,6 +9,7 @@ import { ValidationProvider } from './store/validation/validation';
 import { CategoryContextProvider } from './store/category/category-context';
 
 
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <AuthContextProvider>

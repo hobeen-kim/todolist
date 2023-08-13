@@ -6,6 +6,8 @@ import CategoryContext from "../store/category/category-context";
 import Layout from "../layout/Layout";
 import '../public/css/main.css'
 import { TopListContextProvider } from '../store/toplist/topList-context';
+import { TodoContextProvider } from '../store/todo/todo-context';
+
 
 
 const Main = () => {
@@ -33,12 +35,14 @@ const Main = () => {
 
     return (
         <TopListContextProvider>
+            <TodoContextProvider>
             <Layout>
                 <div><button className="delete-category" onClick={deleteCategory}>x</button></div>
                 <Routes>
-                    <Route path="/categories/*" element={<Category/>} />
+                    <Route path="/*" element={<Category/>} />
                 </Routes>
             </Layout>
+            </TodoContextProvider>
         </TopListContextProvider>
     )
 }

@@ -2,7 +2,7 @@ import { useEffect, useContext, useState } from "react";
 import { CategoryContext } from '../../store/category/category-context';
 import '../../public/css/category/category.css';
 import DayPlan from './dayplan/DayPlan';
-import Todo from './todo/Todo';
+import Todos from './todo/Todos';
 import TopLists from './toplist/TopLists';
 import WeekPlan from "./dayplan/WeekPlan";
 
@@ -21,7 +21,7 @@ const Category = () => {
         <div className="category-container">
             <TopLists categoryId={category?.id} />
             <DayPlan />
-            <Todo />
+            <Todos categoryId={category?.id} />
             <WeekPlan />
         </div>
     )

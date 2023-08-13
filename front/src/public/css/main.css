@@ -5,7 +5,7 @@
     color: rgb(255, 255, 255);
     background-color: transparent;
     border: none;
-    z-index: 1; /* 다른 요소 위에 위치하게 합니다. */
+    z-index: 1; 
     cursor: pointer; 
 
 }
